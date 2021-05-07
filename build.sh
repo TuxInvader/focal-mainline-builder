@@ -38,9 +38,6 @@ git checkout "cod/mainline/${kver}"
 fakeroot debian/rules clean defaultconfigs
 fakeroot debian/rules clean
 
-# rm debian/linux-libc-dev if it exists
-rm -rf $ksrc/debian/linux-libc-dev
-
 # Build
 dpkg-buildpackage -uc -ui -us -aamd64 -d --build=$btype
 #AUTOBUILD=1 fakeroot debian/rules binary-debs
