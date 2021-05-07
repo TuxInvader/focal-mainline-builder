@@ -22,8 +22,8 @@ then
   bash
 fi
 
-git clean -fd
-git reset --hard
+git clean -fdx
+git reset --hard HEAD
 
 if [ "$update" == "yes" ]
 then
