@@ -25,7 +25,7 @@ RUN set -x \
     python3-minimal python3.8 python3.8-minimal sbsigntool tzdata dctrl-tools kernel-wedge \
     libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl \
-    cpio makedumpfile libcap-dev libnewt-dev libdw-dev \
+    cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync \
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
@@ -38,4 +38,4 @@ RUN curl http://launchpadlibrarian.net/477188680/dwarves_1.17-1_amd64.deb > /var
 COPY build.sh /build.sh
 
 ENTRYPOINT ["/build.sh"]
-CMD ["--update yes"]
+CMD ["--update=yes", "--btype=binary"]
