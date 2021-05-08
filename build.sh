@@ -56,6 +56,7 @@ git checkout "cod/mainline/${kver}"
 # prep
 echo -e "********\n\nApplying default configs\n\n********"
 sed -i -re 's/hirsute/focal/g' debian.master/changelog
+sed -i -re 's/dwarves/dwarves (>=1.17-1)/g' debian.master/control.stub.in
 fakeroot debian/rules clean defaultconfigs
 fakeroot debian/rules clean
 
