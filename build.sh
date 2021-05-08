@@ -54,13 +54,13 @@ fi
 
 # Build
 echo -e "********\n\nBuilding packages\n\n********"
-dpkg-buildpackage -uc -ui -us -aamd64 -d --build=$btype
+dpkg-buildpackage -uc -ui -us -aamd64 -d --build=$btype 
 #AUTOBUILD=1 fakeroot debian/rules binary-debs
 #AUTOBUILD=1 NOEXTRAS=1 fakeroot debian/rules binary-FLAVOUR
 
 echo -e "********\n\nMoving packages to debs folder\n\n********"
-dpkg-buildpackage -uc -ui -us -aamd64 -d --build=$btype
-mv $ksrc/../*.* $kdeb
+[ -d "$kdeb/$kver" ] || mkdir $kdeb/$kver
+mv $ksrc/../*.* $kdeb/$kver
 
 if [ "$shell" == "yes" ]
 then
