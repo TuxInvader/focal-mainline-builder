@@ -28,6 +28,7 @@ git reset --hard HEAD
 if [ "$update" == "yes" ]
 then
   git checkout master
+  git fetch origin 
   git pull
 fi
 
