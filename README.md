@@ -7,8 +7,8 @@ on your systems.
 Alternatively it can build signed source packages for uploading to a PPA
 
 I upload my signed source packages to this
-[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline) should you want to use it,
-or [download the packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).
+[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab
+[the packages here](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).
 
 
 ## Usage
