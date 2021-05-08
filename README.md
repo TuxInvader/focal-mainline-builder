@@ -27,6 +27,14 @@ sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source 
      -v /usr/local/src/cod/debs:/home/debs --rm tuxinvader/focal-mainline-builder:latest
 ```
 
+Or if you want to build a signed package:
+
+```
+sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
+     -v /usr/local/src/cod/debs:/home/debs -v ~/.gnupg:/root/keys \
+     --rm tuxinvader/focal-mainline-builder:latest --btype=source --sign=<SECRET_KEY_ID>
+```
+
 Go and make a nice cup-of-tea while your kernel is built. 
 
 Set the `kver` variable to the version of the kernel you want to build
@@ -50,6 +58,11 @@ after the build process. Default is `no`
 * Build Type: You can pass `--btype=[binary,source,any,all,full]` to chose
 the type of build performed. Default is `binary`.
 
-* Customize: You can pass `--custom=[yes|no]` to run makemenuconfig before the
+* Customize: You can pass `--custom=[yes|no]` to run `make menuconfig` before the
 the build process. Default is `no`
+
+* Sign: You can pass `--sign=<secret-key-id>` to sign source packages ready for uploading
+to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cotainer.
+Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
+
 

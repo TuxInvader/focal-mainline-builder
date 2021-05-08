@@ -25,7 +25,7 @@ RUN set -x \
     python3-minimal python3.8 python3.8-minimal sbsigntool tzdata dctrl-tools kernel-wedge \
     libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl \
-    cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync \
+    cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 

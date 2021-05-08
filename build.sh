@@ -6,6 +6,8 @@ update=yes
 btype=binary
 shell=no
 custom=no
+sign=no
+buildargs="-aamd64 -d"
 
 args=( $@ );
 for (( i=0; $i < $# ; i++ ))
@@ -14,7 +16,18 @@ do
   [[ "${args[$i]}" =~ --btype.* ]] && btype=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --shell.* ]] && shell=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --custom.* ]] && custom=${args[$i]#*=} && continue
+  [[ "${args[$i]}" =~ --sign.* ]] && sign=${args[$i]#*=} && continue
 done
+
+if [ "$sign" == "no" ]
+then
+  buildargs="$buildargs -uc -ui -us"
+else
+  buildargs="$buildargs -sa --sign-key=${sign}"
+  cp -rp /root/keys /root/.gnupg
+  chown -R root:root /root/.gnupg
+  chmod 700 /root/.gnupg
+fi
 
 cd $ksrc
 
@@ -42,8 +55,10 @@ git checkout "cod/mainline/${kver}"
 
 # prep
 echo -e "********\n\nApplying default configs\n\n********"
+sed -i -re 's/hirsute/focal/g' debian.master/changelog
 fakeroot debian/rules clean defaultconfigs
 fakeroot debian/rules clean
+
 
 if [ "$custom" == "yes" ]
 then
@@ -53,8 +68,8 @@ then
 fi
 
 # Build
-echo -e "********\n\nBuilding packages\n\n********"
-dpkg-buildpackage -uc -ui -us -aamd64 -d --build=$btype 
+echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
+dpkg-buildpackage --build=$btype $buildargs
 #AUTOBUILD=1 fakeroot debian/rules binary-debs
 #AUTOBUILD=1 NOEXTRAS=1 fakeroot debian/rules binary-FLAVOUR
 
