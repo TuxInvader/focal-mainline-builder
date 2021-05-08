@@ -27,7 +27,7 @@ sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source 
      -v /usr/local/src/cod/debs:/home/debs --rm tuxinvader/focal-mainline-builder:latest
 ```
 
-Or if you want to build a signed package:
+Or if you want to build a signed source package:
 
 ```
 sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
