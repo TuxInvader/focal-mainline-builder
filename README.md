@@ -50,4 +50,6 @@ after the build process. Default is `no`
 * Build Type: You can pass `--btype=[binary,source,any,all,full]` to chose
 the type of build performed. Default is `binary`.
 
+* Customize: You can pass `--custom=[yes|no]` to run makemenuconfig before the
+the build process. Default is `no`
 
