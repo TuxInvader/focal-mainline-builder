@@ -24,16 +24,16 @@ RUN set -x \
     lsb-release m4 man-db mime-support po-debconf python-apt-common python3 python3-apt \
     python3-minimal python3.8 python3.8-minimal sbsigntool tzdata dctrl-tools kernel-wedge \
     libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev \
-    libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl \
-    cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2\
+    libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
+    cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 
-# We need dwarves >= 1.16 (use the version from groovy)
-RUN curl http://launchpadlibrarian.net/477188680/dwarves_1.17-1_amd64.deb > /var/tmp/dwarves_1.17-1_amd64.deb \
-  && dpkg -i /var/tmp/dwarves_1.17-1_amd64.deb \
-  && rm /var/tmp/dwarves_1.17-1_amd64.deb 
+# We need dwarves >= 1.16 (use the backported groovy version from my PPA)
+RUN cd /var/tmp && wget https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+files/dwarves_1.17-1ppa2_amd64.deb \
+  && dpkg -i /var/tmp/dwarves_1.17-1ppa2_amd64.deb \
+  && rm /var/tmp/dwarves_1.17-1ppa2_amd64.deb 
 
 COPY build.sh /build.sh
 

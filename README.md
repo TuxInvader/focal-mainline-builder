@@ -1,6 +1,15 @@
 # Builder for Ubuntu Mainline kernels
 
 This container will build a mainline kernel from the Ubuntu source tree.
+By default the container will build binary packages which you can then install
+on your systems. 
+
+Alternatively it can build signed source packages for uploading to a PPA
+
+I upload my signed source packages to this
+[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline) should you want to use it,
+or [download the packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).
+
 
 ## Usage
 
@@ -22,26 +31,29 @@ mkdir /usr/local/src/cod/debs
 Launch the container with two volume mounts, one to the source code downloaded above, and the
 other for the deb packages to be copied into.
 
+*Binary debs*
 ```
 sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
      -v /usr/local/src/cod/debs:/home/debs --rm tuxinvader/focal-mainline-builder:latest
 ```
+Go and make a nice cup-of-tea while your kernel is built. 
 
-Or if you want to build a signed source package:
+If you want to build a signed source package, you need to also provide your GPG keyring:
 
+*Signed Source package*
 ```
 sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
      -v /usr/local/src/cod/debs:/home/debs -v ~/.gnupg:/root/keys \
      --rm tuxinvader/focal-mainline-builder:latest --btype=source --sign=<SECRET_KEY_ID>
 ```
 
-Go and make a nice cup-of-tea while your kernel is built. 
+### Notes
 
 Set the `kver` variable to the version of the kernel you want to build
 (from here: https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=N;O=D)
 
-The built packages will be placed in the mounted volume at `/home/debs`, which
-is `/usr/local/src/cod/debs` if you've followed the example.
+The built packages or source files will be placed in the mounted volume at `/home/debs`,
+which is `/usr/local/src/cod/debs` if you've followed the example.
 
 The container will do an update in the source code repository when it runs,
 if the tree is already up-to-date then you can append `--update=no` to the
