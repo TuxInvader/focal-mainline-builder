@@ -32,7 +32,7 @@ if [ "$update" == "yes" ]
 then
   echo -e "********\n\nUpdating git source tree\n\n********"
   git checkout master
-  git fetch origin 
+  git fetch --tags origin 
   git pull
 fi
 
