@@ -6,9 +6,9 @@ on your systems.
 
 Alternatively it can build signed source packages ~~for uploading to a PPA~~
 
-~~I upload my signed source packages to this~~
-~~[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab~~
-~~[the packages here](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).~~
+~~I upload my signed source packages to this
+[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab
+[the packages here](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).~~
 
 The source packages can't be built by launchpad, because they are too big, and will
 fill up the file-system before the build completes. :-(
