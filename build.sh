@@ -44,9 +44,7 @@ git reset --hard HEAD
 if [ "$update" == "yes" ]
 then
   echo -e "********\n\nUpdating git source tree\n\n********"
-  git checkout master
   git fetch --tags origin 
-  git pull
 fi
 
 # checkout the kver
@@ -87,5 +85,4 @@ fi
 echo -e "********\n\nCleaning git source tree\n\n********"
 git clean -fdx
 git reset --hard HEAD
-git checkout master
 
