@@ -80,9 +80,9 @@ to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cota
 Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
 
 * Falvour: You can pass `--flavour=[generic|lowlatency]` if you want to limit the build
-to just one flavour. Default is unset, and we build both.
+to just one flavour. Default is `none`, and we build both.
 
 * Exclude: You can pass `--exclude=[cloud-tools,udebs] to exclude one or more packages.
-The default is no exclusions.
+Default is `none`.
 
 

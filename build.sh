@@ -74,12 +74,6 @@ then
     then
       echo "disable_d_i     = true" >> debian.master/rules.d/amd64.mk
     fi
-    #awk -i inplace -v exc="$pkg" 'BEGIN { copy = "yes"; regx=".*-"exc }; \
-    #  { if ($1 == "Package:" ) { if ($2 ~ exc ) {copy="no"} else {copy="yes"} }; \
-    #  if ( copy == "yes" ) { print } }' debian.master/control.stub.in
-    #awk -i inplace -v exc="$pkg" 'BEGIN { copy = "yes"; regx=".*-"exc }; \
-    #  { if ($1 == "Package:" ) { if ($2 ~ exc ) {copy="no"} else {copy="yes"} }; \
-    #  if ( copy == "yes" ) { print } }' debian.master/control.d/flavour-control.stub
   done
 fi
 
