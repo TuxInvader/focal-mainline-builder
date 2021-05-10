@@ -4,7 +4,7 @@ This container will build a mainline kernel from the Ubuntu source tree.
 By default the container will build binary packages which you can then install
 on your systems. 
 
-Alternatively it can build signed source packages ~~for uploading to a PPA~~
+Alternatively it can build signed source packages for uploading to a PPA.
 
 I upload my signed source packages to this
 [lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab
