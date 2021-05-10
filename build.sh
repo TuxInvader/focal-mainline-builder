@@ -7,6 +7,8 @@ btype=binary
 shell=no
 custom=no
 sign=no
+flavour=none
+exclude=none
 buildargs="-aamd64 -d"
 
 args=( $@ );
@@ -17,6 +19,8 @@ do
   [[ "${args[$i]}" =~ --shell.* ]] && shell=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --custom.* ]] && custom=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --sign.* ]] && sign=${args[$i]#*=} && continue
+  [[ "${args[$i]}" =~ --flavour.* ]] && flavour=${args[$i]#*=} && continue
+  [[ "${args[$i]}" =~ --exclude.* ]] && exclude=${args[$i]#*=} && continue
 done
 
 if [ "$sign" == "no" ]
@@ -30,12 +34,6 @@ else
 fi
 
 cd $ksrc
-
-if [ "$shell" == "yes" ]
-then
-  echo -e "********\n\nPre-build shell, exit or ctrl-d to continue build\n\n********"
-  bash
-fi
 
 echo -e "********\n\nCleaning git source tree\n\n********"
 git clean -fdx
@@ -53,11 +51,46 @@ git checkout "cod/mainline/${kver}"
 
 # prep
 echo -e "********\n\nApplying default configs\n\n********"
+debversion=$(date +%Y%m%d%H%M)
 sed -i -re 's/hirsute/focal/g' debian.master/changelog
+sed -i -re "s/(^linux \([0-9]+\.[0-9]+\.[0-9]-[0-9]+)\.[0-9]+(\).*)/\1.${debversion}\2/" debian.master/changelog
 sed -i -re 's/dwarves/dwarves (>=1.17-1)/g' debian.master/control.stub.in
+
+if [ "$flavour" != "none" ]
+then
+  sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
+fi
+
+if [ "$exclude" != "none" ]
+then
+  IFS=',' read -ra pkgs <<< "$exclude"
+  for pkg in "${pkgs[@]}"
+  do
+    if [ "$pkg" == "cloud-tools" ]
+    then
+      sed -i -re "s/(do_tools_hyperv\s+=).*/\1 false/" debian.master/rules.d/amd64.mk
+    fi
+    if [ "$pkg" == "udebs" ]
+    then
+      echo "disable_d_i     = true" >> debian.master/rules.d/amd64.mk
+    fi
+    #awk -i inplace -v exc="$pkg" 'BEGIN { copy = "yes"; regx=".*-"exc }; \
+    #  { if ($1 == "Package:" ) { if ($2 ~ exc ) {copy="no"} else {copy="yes"} }; \
+    #  if ( copy == "yes" ) { print } }' debian.master/control.stub.in
+    #awk -i inplace -v exc="$pkg" 'BEGIN { copy = "yes"; regx=".*-"exc }; \
+    #  { if ($1 == "Package:" ) { if ($2 ~ exc ) {copy="no"} else {copy="yes"} }; \
+    #  if ( copy == "yes" ) { print } }' debian.master/control.d/flavour-control.stub
+  done
+fi
+
 fakeroot debian/rules clean defaultconfigs
 fakeroot debian/rules clean
 
+if [ "$shell" == "yes" ]
+then
+  echo -e "********\n\nPre-build shell, exit or ctrl-d to continue build\n\n********"
+  bash
+fi
 
 if [ "$custom" == "yes" ]
 then
