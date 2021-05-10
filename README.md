@@ -10,9 +10,6 @@ I upload my signed source packages to this
 [lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab
 [the packages here](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).
 
-The source packages can't be built by launchpad, because they are too big, and will
-fill up the file-system before the build completes. :-(
-
 ## Usage
 
 1. Checkout the Mainline kernel from Ubuntu
