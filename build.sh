@@ -52,7 +52,7 @@ git checkout "cod/mainline/${kver}"
 # prep
 echo -e "********\n\nApplying default configs\n\n********"
 debversion=$(date +%Y%m%d%H%M)
-sed -i -re 's/hirsute/focal/g' debian.master/changelog
+sed -i -re 's/(^linux [^\)]*\))([^;]*); (.*)/\1 focal; \3/' debian.master/changelog
 sed -i -re "s/(^linux \([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\.[0-9]+(\).*)/\1.${debversion}\2/" debian.master/changelog
 sed -i -re 's/dwarves/dwarves (>=1.17-1)/g' debian.master/control.stub.in
 
