@@ -43,8 +43,13 @@ If you want to build a signed source package, you need to also provide your GPG 
 ```
 sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
      -v /usr/local/src/cod/debs:/home/debs -v ~/.gnupg:/root/keys \
-     --rm tuxinvader/focal-mainline-builder:latest --btype=source --sign=<SECRET_KEY_ID>
+     --rm tuxinvader/focal-mainline-builder:latest --btype=source --sign=<SECRET_KEY_ID> \
+     --flavour=generic --exclude=cloud-tools,udebs --rename=yes
 ```
+
+The linux source package builds some debs which are linked (by name) against the kernel and some
+which are common. Using `--rename=yes` allows us to store multiple kernels in the same PPA by changing
+the name of the source package and the linking all binaries (by name) to a specific kernel.
 
 ### Notes
 
@@ -57,6 +62,7 @@ which is `/usr/local/src/cod/debs` if you've followed the example.
 The container will do an update in the source code repository when it runs,
 if the tree is already up-to-date then you can append `--update=no` to the
 `docker run` command to skip that step.
+
 
 ## Additional options
 
@@ -82,4 +88,7 @@ to just one flavour. Default is `none`, and we build both.
 * Exclude: You can pass `--exclude=[cloud-tools,udebs]` to exclude one or more packages.
 Default is `none`.
 
+* Rename: You can pass `--rename=[yes|no]` to rename the source package to be kernel release specific.
+This enables hosting multple kernels in the same PPA. Use with `--exclude=tools,udebs` to stop
+duplicate packages being built. Default is `no`
 
