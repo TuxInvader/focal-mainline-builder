@@ -10,6 +10,8 @@ sign=no
 flavour=none
 exclude=none
 rename=no
+patch=no
+series=focal
 buildargs="-aamd64 -d"
 
 args=( $@ );
@@ -23,6 +25,8 @@ do
   [[ "${args[$i]}" =~ --flavour.* ]] && flavour=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --exclude.* ]] && exclude=${args[$i]#*=} && continue
   [[ "${args[$i]}" =~ --rename.* ]] && rename=${args[$i]#*=} && continue
+  [[ "${args[$i]}" =~ --patch.* ]] && patch=${args[$i]#*=} && continue
+  [[ "${args[$i]}" =~ --series.* ]] && series=${args[$i]#*=} && continue
 done
 
 if [ "$sign" == "no" ]
@@ -51,19 +55,40 @@ fi
 echo -e "********\n\nSwitching to cod/mainline/${kver} branch\n\n********"
 git checkout "cod/mainline/${kver}"
 
+# Apply patch if requested
+if [ "$patch" != "no" ]
+then
+  echo -e "********\n\nDownloading and patching cod/mainline/${kver} to $patch\n\n********"
+  if [[ "$patch" =~ v[0-9]+\.[0-9]+\.[0-9]* ]]
+  then
+    # apply patch
+    curl -s https://cdn.kernel.org/pub/linux/kernel/${patch/.*/}.x/patch-${patch:1}.xz > /home/patch.xz
+    ret=$?
+    [ $ret -ne 0 ] && echo "ERROR: Failed to download patch. Code: $ret" && exit $ret
+    xzcat /home/patch.xz |  patch -p1 --forward -r -
+    ret=$?
+    [ $ret -gt 1 ] && echo "ERROR: Patching failed. Code $ret" && exit $ret
+    kver="$patch"
+  else
+    echo "ERROR: Patch version should be a kernel version, Eg v5.11.19"
+    exit
+  fi
+fi
+
 # prep
 echo -e "********\n\nRenaming source package and updating control files\n\n********"
 debversion=$(date +%Y%m%d%H%M)
+abinum=$(echo ${kver:1} | awk -F. '{printf "%02d%02d%02d", $1,$2,$3 }')
 if [ "$rename" == "yes" ]
 then
-  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux-${kver:1} (\2-\3.${debversion}) focal\5/" debian.master/changelog
+  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux-${kver:1} (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
   sed -i -re 's/SRCPKGNAME/linux/g' debian.master/control.stub.in
   sed -i -re 's/SRCPKGNAME/linux/g' debian.master/control.d/flavour-control.stub
   sed -i -re "s/Source: linux/Source: linux-${kver:1}/" debian.master/control.stub.in
   sed -i -re "s/^(Package:\s+)(linux(-cloud[-tools]*|-tools)(-common|-host))$/\1\2-PKGVER/" debian.master/control.stub.in
   sed -i -re "s/^(Depends:\s+.*, )(linux(-cloud[-tools]*|-tools)(-common|-host))$/\1\2-PKGVER/" debian.master/control.stub.in
 else
-  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux (\2-\3.${debversion}) focal\5/" debian.master/changelog
+  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
 fi
 sed -i -re 's/dwarves/dwarves (>=1.17-1)/g' debian.master/control.stub.in
 

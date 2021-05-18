@@ -92,3 +92,9 @@ Default is `none`.
 This enables hosting multple kernels in the same PPA. Use with `--exclude=tools,udebs` to stop
 duplicate packages being built. Default is `no`
 
+* Series: You can pass `--series=[focal|groovy|...]` to set the ubuntu version you're building
+  for. Default is `focal`
+
+* Patch: You can pass a patch version to apply upstream patch to the ubuntu kernel.
+  Eg `--patch=v5.11.21` to patch v5.11.20 upto v5.11.21. Default is `no`
+
