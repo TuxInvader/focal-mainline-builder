@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u
 
 export LANG=C
 
@@ -14,19 +15,26 @@ patch=no
 series=focal
 buildargs="-aamd64 -d"
 
-args=( $@ );
+__die() {
+  local rc=$1; shift
+  printf 1>&2 '%s\n' "ERROR: $*"; exit $rc
+}
+
+args=( "$@" );
 for (( i=0; $i < $# ; i++ ))
 do
-  [[ "${args[$i]}" =~ --update.* ]] && update=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --btype.* ]] && btype=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --shell.* ]] && shell=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --custom.* ]] && custom=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --sign.* ]] && sign=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --flavour.* ]] && flavour=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --exclude.* ]] && exclude=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --rename.* ]] && rename=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --patch.* ]] && patch=${args[$i]#*=} && continue
-  [[ "${args[$i]}" =~ --series.* ]] && series=${args[$i]#*=} && continue
+  arg=${args[$i]}
+  if [[ $arg = --*=* ]]
+  then
+    key=${arg#--}
+    val=${key#*=}; key=${key%%=*}
+    case "$key" in
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series)
+        printf -v "$key" '%s' "$val" ;;
+      *) __die 1 "Unknown flag $arg"
+    esac
+  else __die 1 "Bad arg $arg"
+  fi
 done
 
 if [ "$sign" == "no" ]
@@ -39,10 +47,10 @@ else
   chmod 700 /root/.gnupg
 fi
 
-cd $ksrc
+cd "$ksrc" || __die 1 "\$ksrc ${ksrc@Q} not found"
 
 echo -e "********\n\nCleaning git source tree\n\n********"
-git clean -fdx
+git clean -fdx || __die 1 'git failed'
 git reset --hard HEAD
 
 if [ "$update" == "yes" ]
@@ -64,14 +72,13 @@ then
     # apply patch
     curl -s https://cdn.kernel.org/pub/linux/kernel/${patch/.*/}.x/patch-${patch:1}.xz > /home/patch.xz
     ret=$?
-    [ $ret -ne 0 ] && echo "ERROR: Failed to download patch. Code: $ret" && exit $ret
+    [ $ret -ne 0 ] && __die $ret "Failed to download patch. Code: $ret"
     xzcat /home/patch.xz |  patch -p1 --forward -r -
     ret=$?
-    [ $ret -gt 1 ] && echo "ERROR: Patching failed. Code $ret" && exit $ret
+    [ $ret -gt 1 ] && __die $ret "Patching failed. Code $ret"
     kver="$patch"
   else
-    echo "ERROR: Patch version should be a kernel version, Eg v5.11.19"
-    exit
+    __die 1 "Patch version should be a kernel version, Eg v5.11.19"
   fi
 fi
 
@@ -140,8 +147,8 @@ echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btyp
 dpkg-buildpackage --build=$btype $buildargs
 
 echo -e "********\n\nMoving packages to debs folder\n\n********"
-[ -d "$kdeb/$kver" ] || mkdir $kdeb/$kver
-mv $ksrc/../*.* $kdeb/$kver
+[ -d "$kdeb/$kver" ] || mkdir "$kdeb/$kver"
+mv "$ksrc"/../*.* "$kdeb/$kver"
 
 if [ "$shell" == "yes" ]
 then
