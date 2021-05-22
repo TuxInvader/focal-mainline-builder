@@ -16,9 +16,21 @@ I upload my signed source packages to this
 ```
 sudo mkdir -p /usr/local/src/cod/
 sudo chown $(whoami) /usr/local/src/cod
-git clone git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack \
-    /usr/local/src/cod/mainline
 ```
+
+  * Download the full source tree, if you want to be able to build any kernel (including previous releases)
+  ```
+  git clone git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack \
+    /usr/local/src/cod/mainline
+  ```
+
+  * Download a specific kernel version if you only need to build this version. Eg v5.12.4:
+  ```
+  git clone --depth=1 -b cod/mainline/v5.12.4 \
+    git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack \
+    /usr/local/src/cod/mainline
+  ```
+  You should also pass `--update=no` when checking out only a single release.
 
 2. Create a directory to receive the debian packages
 ```
