@@ -30,10 +30,10 @@ RUN set -x \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 
-# We need dwarves >= 1.16 (use the backported groovy version from my PPA)
-RUN cd /var/tmp && wget https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+files/dwarves_1.17-1ppa2_amd64.deb \
-  && dpkg -i /var/tmp/dwarves_1.17-1ppa2_amd64.deb \
-  && rm /var/tmp/dwarves_1.17-1ppa2_amd64.deb 
+# We need dwarves >= 1.16 (use the official groovy version)
+RUN cd /var/tmp && wget http://archive.ubuntu.com/ubuntu/pool/universe/d/dwarves-dfsg/dwarves_1.17-1_amd64.deb \
+  && dpkg -i /var/tmp/dwarves_1.17-1_amd64.deb \
+  && rm /var/tmp/dwarves_1.17-1_amd64.deb 
 
 COPY build.sh /build.sh
 
