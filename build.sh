@@ -13,6 +13,7 @@ exclude=none
 rename=no
 patch=no
 series=focal
+checkbugs=no
 buildargs="-aamd64 -d"
 
 __die() {
@@ -29,7 +30,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -123,6 +124,18 @@ then
       echo "disable_d_i     = true" >> debian.master/rules.d/amd64.mk
     fi
   done
+fi
+
+if [ "$checkbugs" == "yes" ]
+then
+  echo -e "********\n\nChecking for potential bugs\n\n********\n"
+  if [ "$(cat debian/debian.env)" == "DEBIAN=debian.master" ]
+  then
+    echo " ---> debian.env bug == no"
+  else
+    echo " ---> debian.env bug == yes"
+    echo "DEBIAN=debian.master" > debian/debian.env
+  fi
 fi
 
 echo -e "********\n\nApplying default configs\n\n********"
