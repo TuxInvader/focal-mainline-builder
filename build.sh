@@ -29,9 +29,9 @@ do_metapackage() {
   BINS="${KVER}-${ABINUM}-${FLAVOUR}"
   DEPS="linux-headers-${BINS}, linux-image-unsigned-${BINS}, linux-modules-${BINS}"
 
-  mkdir ../meta
+  [ -d "../meta" ] || mkdir ../meta
   cd ../meta
-  cat > linux-meta.control <<-EOF
+  cat > metapackage.control <<-EOF
 		Section: devel
 		Priority: optional
 		# Homepage: <enter URL here; no default>
@@ -60,12 +60,12 @@ do_metapackage() {
 	EOF
   mkdir -p "source/usr/share/doc/linux-generic-${VERSION}"
   tar -C source -zcpf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
-  equivs-build linux-meta.control
+  equivs-build metapackage.control
   if [ "$BTYPE" == "source" ]
   then
-    equivs-build --source linux-meta.control
+    equivs-build --source metapackage.control
   fi
-  mv linux-generic* ../
+  mv linux-* ../
   cd -
 }
 
@@ -218,7 +218,8 @@ if [ "$buildmeta" == "yes" ]
 then
   if [ "$flavour" == "none" ]
   then
-    echo -e "\n\n ------->  ERROR - Can't build meta package without flavour. Choose generic or lowlatency\n\n"
+    do_metapackage "${kver:1}" "generic" "$series" "$maintainer" "$abinum" "$btype"
+    do_metapackage "${kver:1}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
   else
     do_metapackage "${kver:1}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
   fi
