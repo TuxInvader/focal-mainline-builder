@@ -2,7 +2,8 @@
 
 This container will build a mainline kernel from the Ubuntu source tree.
 By default the container will build binary packages which you can then install
-on your systems. 
+on your systems. You can optionally build a metapackage to track a build flavour,
+and major release of kernel (eg 5.12.x).
 
 Alternatively it can build signed source packages for uploading to a PPA.
 
@@ -59,6 +60,15 @@ sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source 
      --flavour=generic --exclude=cloud-tools,udebs --rename=yes
 ```
 
+*Build and sign metapackage*
+```
+sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source \
+     -v /usr/local/src/cod/debs:/home/debs -v ~/.gnupg:/root/keys \
+     --rm tuxinvader/focal-mainline-builder:latest --btype=source --sign=<SECRET_KEY_ID> \
+     --flavour=generic --exclude=cloud-tools,udebs --rename=yes --buildmeta=yes \
+     --maintainer="Zaphod <zaphod@betelgeuse-seven.western-spiral-arm.milkyway>"
+```
+
 The linux source package builds some debs which are linked (by name) against the kernel and some
 which are common. Using `--rename=yes` allows us to store multiple kernels in the same PPA by changing
 the name of the source package and the linking all binaries (by name) to a specific kernel.
@@ -109,4 +119,14 @@ duplicate packages being built. Default is `no`
 
 * Patch: You can pass a patch version to apply upstream patch to the ubuntu kernel.
   Eg `--patch=v5.11.21` to patch v5.11.20 upto v5.11.21. Default is `no`
+
+* Check bugs: You can pass `--checkbugs=yes` to work around any known bugs, currently this is required
+to build older 5.10.x and 5.11.x kernels see bug #4
+
+* Build metapackage: You can pass `--buildmeta=[yes|no]` to build a metapackage named `linux-<flavour>-<major version>`
+that will depend on the kernel you are building. This makes it easy to track the latest release and auto-update
+using apt.
+
+* Maintainer: If you want to sign the metapackage (for PPA upload), then you need to
+pass `--maintainer="Me <me@mine.org"`
 

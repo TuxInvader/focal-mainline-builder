@@ -26,7 +26,7 @@ RUN set -x \
     libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
-    libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto \
+    libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 

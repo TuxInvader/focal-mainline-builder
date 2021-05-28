@@ -14,7 +14,60 @@ rename=no
 patch=no
 series=focal
 checkbugs=no
+buildmeta=no
+maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
+
+do_metapackage() {
+  KVER=$1
+  VERSION=$(echo ${KVER} | awk -F. '{printf "%d.%02d", $1,$2 }')
+  FLAVOUR=$2
+  SERIES=$3
+  MAINT=$4
+  ABINUM=$5
+  BTYPE=$6
+  BINS="${KVER}-${ABINUM}-${FLAVOUR}"
+  DEPS="linux-headers-${BINS}, linux-image-unsigned-${BINS}, linux-modules-${BINS}"
+
+  mkdir ../meta
+  cd ../meta
+  cat > linux-meta.control <<-EOF
+		Section: devel
+		Priority: optional
+		# Homepage: <enter URL here; no default>
+		Standards-Version: 3.9.2
+
+		Package: linux-${FLAVOUR}-${VERSION}
+		Changelog: changelog
+		Version: ${KVER}
+		Maintainer: ${MAINT}
+		Depends: ${DEPS}
+		Architecture: amd64
+		Description: Meta-package which will always depend on the latest packages in a mainline series.
+		  This meta package will depend on the latest kernel in a series (eg 5.12.x) and install the
+		  dependencies for that kernel.
+		  .
+		  Example: linux-generic-5.12 will depend on linux-image-unsigned-5.12.x-generic,
+		  linux-modules-5.12.x-generic, linux-headers-5.12.x-generic and linux-headers-5.12.x
+	EOF
+	cat > changelog <<-EOF
+		linux-${FLAVOUR}-${VERSION} (${KVER}) ${SERIES}; urgency=low
+
+		  Metapackage for Linux ${VERSION}.x
+		  Mainline build at commit: v${KVER}
+
+		 -- ${MAINT}  $(date -R)
+	EOF
+  mkdir -p "source/usr/share/doc/linux-generic-${VERSION}"
+  tar -C source -zcpf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
+  equivs-build linux-meta.control
+  if [ "$BTYPE" == "source" ]
+  then
+    equivs-build --source linux-meta.control
+  fi
+  mv linux-generic* ../
+  cd -
+}
 
 __die() {
   local rc=$1; shift
@@ -30,7 +83,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -159,6 +212,17 @@ fi
 # Build
 echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
 dpkg-buildpackage --build=$btype $buildargs
+
+echo -e "********\n\nBuilding meta package\n\n********"
+if [ "$buildmeta" == "yes" ]
+then
+  if [ "$flavour" == "none" ]
+  then
+    echo -e "\n\n ------->  ERROR - Can't build meta package without flavour. Choose generic or lowlatency\n\n"
+  else
+    do_metapackage "${kver:1}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
+  fi
+fi
 
 echo -e "********\n\nMoving packages to debs folder\n\n********"
 [ -d "$kdeb/$kver" ] || mkdir "$kdeb/$kver"
