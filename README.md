@@ -5,6 +5,9 @@ By default the container will build binary packages which you can then install
 on your systems. You can optionally build a metapackage to track a build flavour,
 and major release of kernel (eg 5.12.x).
 
+If you build the metapackage it will have a name like: 
+`linux-generic-5.12` and will depend on the version of `5.12.x` you are building.
+
 Alternatively it can build signed source packages for uploading to a PPA.
 
 I upload my signed source packages to this
@@ -127,6 +130,6 @@ to build older 5.10.x and 5.11.x kernels see bug #4
 that will depend on the kernel you are building. This makes it easy to track the latest release and auto-update
 using apt.
 
-* Maintainer: If you want to sign the metapackage (for PPA upload), then you need to
-pass `--maintainer="Me <me@mine.org"`
+* Maintainer: If you want to sign the metapackage (for PPA upload), then you need to provide the details of your
+signing key by passing `--maintainer="Me <me@mine.org>"`
 
