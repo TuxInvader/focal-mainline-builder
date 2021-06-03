@@ -115,7 +115,7 @@ fi
 
 # checkout the kver
 echo -e "********\n\nSwitching to cod/mainline/${kver} branch\n\n********"
-git checkout "cod/mainline/${kver}"
+git checkout "cod/mainline/${kver}" || __die 1 "Tag for 'cod/mainline/${kver} not found"
 
 # Apply patch if requested
 if [ "$patch" != "no" ]
