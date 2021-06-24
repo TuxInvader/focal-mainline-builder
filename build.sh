@@ -194,7 +194,7 @@ then
   if [ $? == 0 ]
   then
     # LZ4 Compression enabled. Check it's listed as a dependency
-    if [ ! $(egrep -i "lz4.*amd" debian.master/control.stub.in > /dev/null) ]
+    if [ ! "$( egrep -i "lz4.*amd" debian.master/control.stub.in )" ]
     then
       echo " ---> LZ4 dependency bug == yes"
       sed -i -re "s/(^\s+lz4 )([^<]*)(.*)/\1[amd64 s390x] \3/" debian.master/control.stub.in
