@@ -27,7 +27,7 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
-    cmake libbpfcc-dev elfutils libdw-dev libdw1 pkg-config git-buildpackage \
+    cmake pkg-config \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 # Build dwarves 1.21 with ftrace patch for 5.13 compatability
