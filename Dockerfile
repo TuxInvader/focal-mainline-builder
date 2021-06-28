@@ -27,13 +27,24 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
+    cmake libbpfcc-dev elfutils libdw-dev libdw1 pkg-config git-buildpackage \
   && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
-
-# We need dwarves >= 1.16 (use the official groovy version)
-RUN cd /var/tmp && wget http://archive.ubuntu.com/ubuntu/pool/universe/d/dwarves-dfsg/dwarves_1.17-1_amd64.deb \
-  && dpkg -i /var/tmp/dwarves_1.17-1_amd64.deb \
-  && rm /var/tmp/dwarves_1.17-1_amd64.deb 
+# Build dwarves 1.21 with ftrace patch for 5.13 compatability
+RUN mkdir /dwarves && cd /dwarves \
+  && wget http://mirrors.kernel.org/ubuntu/pool/universe/libb/libbpf/libbpf-dev_0.1.0-1_amd64.deb \
+  && wget http://mirrors.kernel.org/ubuntu/pool/universe/libb/libbpf/libbpf0_0.1.0-1_amd64.deb \
+  && dpkg -i libbpf-dev_0.1.0-1_amd64.deb libbpf0_0.1.0-1_amd64.deb\
+  && rm libbpf-dev_0.1.0-1_amd64.deb libbpf0_0.1.0-1_amd64.deb \
+  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21.orig.tar.xz \
+  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21-0ubuntu1.debian.tar.xz \
+  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21-0ubuntu1.dsc \
+  && dpkg-source -x dwarves-dfsg_1.21-0ubuntu1.dsc \
+  && cd dwarves-dfsg-1.21/ \
+  && sed -i -re 's/Build-Depends:.*/Build-Depends: debhelper-compat (= 12), cmake (>= 2.4.8), zlib1g-dev, libelf-dev, libdw-dev (>= 0.141), pkg-config,/' debian/control \
+  && dpkg-buildpackage \
+  && dpkg -i /dwarves/dwarves_1.21-0ubuntu1_amd64.deb \
+  && rm -rf dwarves-dfsg-1.21 dwarves_1.21-0ubuntu1_amd64.deb
 
 COPY build.sh /build.sh
 
