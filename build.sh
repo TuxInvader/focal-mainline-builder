@@ -201,6 +201,8 @@ then
     else
       echo " ---> LZ4 dependency bug == no"
     fi
+  else
+    echo " ---> LZ4 dependency bug == not used"
   fi
 fi
 
