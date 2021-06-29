@@ -27,24 +27,27 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
-    cmake pkg-config \
-  && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
+    cmake pkg-config 
 
-# Build dwarves 1.21 with ftrace patch for 5.13 compatability
+# Build dwarves (depends on libbpf) tools using the latest ubuntu (impish) source packages 
 RUN mkdir /dwarves && cd /dwarves \
-  && wget http://mirrors.kernel.org/ubuntu/pool/universe/libb/libbpf/libbpf-dev_0.1.0-1_amd64.deb \
-  && wget http://mirrors.kernel.org/ubuntu/pool/universe/libb/libbpf/libbpf0_0.1.0-1_amd64.deb \
-  && dpkg -i libbpf-dev_0.1.0-1_amd64.deb libbpf0_0.1.0-1_amd64.deb\
-  && rm libbpf-dev_0.1.0-1_amd64.deb libbpf0_0.1.0-1_amd64.deb \
-  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21.orig.tar.xz \
-  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21-0ubuntu1.debian.tar.xz \
-  && wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/dwarves-dfsg/1.21-0ubuntu1/dwarves-dfsg_1.21-0ubuntu1.dsc \
-  && dpkg-source -x dwarves-dfsg_1.21-0ubuntu1.dsc \
-  && cd dwarves-dfsg-1.21/ \
-  && sed -i -re 's/Build-Depends:.*/Build-Depends: debhelper-compat (= 12), cmake (>= 2.4.8), zlib1g-dev, libelf-dev, libdw-dev (>= 0.141), pkg-config,/' debian/control \
+  && echo "deb-src http://archive.ubuntu.com/ubuntu impish main universe" > /etc/apt/sources.list.d/impish-sources.list \
+  && chown _apt /dwarves \
+  && apt-get update \
+  && apt-get source libbpf \
+  && sdir=$(find . -name 'libbpf*' -type d) \
+  && cd $sdir \
+  && sed -i -re 's/debhelper-compat \(= 13\)/debhelper-compat \(= 12\)/' debian/control \
   && dpkg-buildpackage \
-  && dpkg -i /dwarves/dwarves_1.21-0ubuntu1_amd64.deb \
-  && rm -rf dwarves-dfsg-1.21 dwarves_1.21-0ubuntu1_amd64.deb
+  && cd .. && dpkg -i libbpf-dev_*_amd64.deb libbpf0_*_amd64.deb \
+  && apt-get source dwarves-dfsg \
+  && sdir=$(find . -name 'dwarves*' -type d) \
+  && cd $sdir \
+  && sed -i -re 's/debhelper-compat \(= 13\)/debhelper-compat \(= 12\)/' debian/control \
+  && dpkg-buildpackage \
+  && cd .. && dpkg -i dwarves_*_amd64.deb \
+  && cd / && rm -rf /dwarves \
+  && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 COPY build.sh /build.sh
 
