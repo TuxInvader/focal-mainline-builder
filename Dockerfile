@@ -27,7 +27,7 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
-    cmake pkg-config 
+    cmake pkg-config zstd
 
 # Build dwarves (depends on libbpf) tools using the latest ubuntu (impish) source packages 
 RUN mkdir /dwarves && cd /dwarves \
