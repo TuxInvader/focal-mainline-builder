@@ -10,9 +10,12 @@ If you build the metapackage it will have a name like:
 
 Alternatively it can build signed source packages for uploading to a PPA.
 
-I upload my signed source packages to this
-[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline). Or grab
-[the packages here](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages).
+I upload my mainline kernels to these PPAs
+
+| Kernel Version | PPA Link | Packages |
+|----------------|----------|----------|
+| mainline/stable |[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages)|
+|longterm|[lts-mainline-longterm PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm)|[lts-mainline-longterm Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm/+packages)|
 
 ## Usage
 
