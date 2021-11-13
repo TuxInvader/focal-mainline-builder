@@ -27,27 +27,7 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
-    cmake pkg-config zstd
-
-# Build dwarves (depends on libbpf) tools using the latest ubuntu (impish) source packages 
-RUN mkdir /dwarves && cd /dwarves \
-  && echo "deb-src http://archive.ubuntu.com/ubuntu impish main universe" > /etc/apt/sources.list.d/impish-sources.list \
-  && chown _apt /dwarves \
-  && apt-get update \
-  && apt-get source libbpf \
-  && sdir=$(find . -name 'libbpf*' -type d) \
-  && cd $sdir \
-  && sed -i -re 's/debhelper-compat \(= 13\)/debhelper-compat \(= 12\)/' debian/control \
-  && dpkg-buildpackage \
-  && cd .. && dpkg -i libbpf-dev_*_amd64.deb libbpf0_*_amd64.deb \
-  && apt-get source dwarves-dfsg \
-  && sdir=$(find . -name 'dwarves*' -type d) \
-  && cd $sdir \
-  && sed -i -re 's/debhelper-compat \(= 13\)/debhelper-compat \(= 12\)/' debian/control \
-  && dpkg-buildpackage \
-  && cd .. && dpkg -i dwarves_*_amd64.deb \
-  && cd / && rm -rf /dwarves \
-  && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
+    cmake pkg-config zstd dwarves
 
 COPY build.sh /build.sh
 
