@@ -91,6 +91,11 @@ The container will do an update in the source code repository when it runs,
 if the tree is already up-to-date then you can append `--update=no` to the
 `docker run` command to skip that step.
 
+## Flavour lowlatency removed
+
+With kernel 5.17 the mainline kernel discontinued the lowlatency flavour. So, the default build now
+only builds the `generic` flavour on 5.17+. The build scripti has been updated to recreate lowlatency
+options, but only if you specify that with `--flavour=lowlatency`.
 
 ## Additional options
 
@@ -110,8 +115,8 @@ the build process. Default is `no`
 to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cotainer.
 Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
 
-* Falvour: You can pass `--flavour=[generic|lowlatency]` if you want to limit the build
-to just one flavour. Default is `none`, and we build both.
+* Falvour: You can pass `--flavour=[generic|lowlatency]` if you want to select the build
+flavour. The default is `none`, and we build `generic`.
 
 * Exclude: You can pass `--exclude=[cloud-tools,udebs]` to exclude one or more packages.
 Default is `none`.

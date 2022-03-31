@@ -154,11 +154,6 @@ else
 fi
 sed -i -re 's/dwarves \[/dwarves (>=1.21) \[/g' debian.master/control.stub.in
 
-if [ "$flavour" != "none" ]
-then
-  sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
-fi
-
 if [ "$exclude" != "none" ]
 then
   IFS=',' read -ra pkgs <<< "$exclude"
@@ -205,6 +200,23 @@ then
   fi
 fi
 
+# Make lowlatency changes manually, the flavour was removed in 5.17+
+if [ "$flavour" = "lowlatency" ]
+then
+  sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
+  cat debian.master/control.d/vars.generic | sed -e 's/Generic/Lowlatency/g' > debian.master/control.d/vars.lowlatency
+  touch debian.master/config/amd64/config.flavour.lowlatency
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --disable COMEDI_TESTS_EXAMPLE
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --disable COMEDI_TESTS_NI_ROUTES
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --set-val CONFIG_HZ 1000
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --enable HZ_1000
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --disable HZ_250
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --enable LATENCYTOP
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --enable PREEMPT
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --disable PREEMPT_VOLUNTARY
+  ./scripts/config --file debian.master/config/amd64/config.common.amd64 --set-val TEST_DIV64 m
+fi
+
 echo -e "********\n\nApplying default configs\n\n********"
 fakeroot debian/rules clean defaultconfigs
 fakeroot debian/rules clean
@@ -232,7 +244,6 @@ then
   if [ "$flavour" == "none" ]
   then
     do_metapackage "${kver:1}" "generic" "$series" "$maintainer" "$abinum" "$btype"
-    do_metapackage "${kver:1}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
   else
     do_metapackage "${kver:1}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
   fi
