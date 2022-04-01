@@ -116,7 +116,7 @@ to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cota
 Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
 
 * Falvour: You can pass `--flavour=[generic|lowlatency]` if you want to select the build
-flavour. The default is `none`, and we build `generic`.
+flavour. The default is `none`, and we build both flavours (only generic on 5.16.12+).
 
 * Exclude: You can pass `--exclude=[cloud-tools,udebs]` to exclude one or more packages.
 Default is `none`.
