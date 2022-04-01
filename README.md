@@ -93,8 +93,8 @@ if the tree is already up-to-date then you can append `--update=no` to the
 
 ## Flavour lowlatency removed
 
-With kernel 5.17 the mainline kernel discontinued the lowlatency flavour. So, the default build now
-only builds the `generic` flavour on 5.17+. The build scripti has been updated to recreate lowlatency
+With kernel 5.16.12 the mainline kernel discontinued the lowlatency flavour. So, the default build now
+only builds the `generic` flavour on 5.16.12+. The build script has been updated to recreate lowlatency
 options, but only if you specify that with `--flavour=lowlatency`.
 
 ## Additional options

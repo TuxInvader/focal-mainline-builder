@@ -154,6 +154,11 @@ else
 fi
 sed -i -re 's/dwarves \[/dwarves (>=1.21) \[/g' debian.master/control.stub.in
 
+if [ "$flavour" != "none" ]
+then
+  sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
+fi
+
 if [ "$exclude" != "none" ]
 then
   IFS=',' read -ra pkgs <<< "$exclude"
@@ -200,10 +205,9 @@ then
   fi
 fi
 
-# Make lowlatency changes manually, the flavour was removed in 5.17+
-if [ "$flavour" = "lowlatency" ]
+# Make lowlatency changes manually, the flavour was removed in 5.16.12 and newer
+if [ "$flavour" = "lowlatency" -a ! -f debian.master/control.d/vars.lowlatency ]
 then
-  sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
   cat debian.master/control.d/vars.generic | sed -e 's/Generic/Lowlatency/g' > debian.master/control.d/vars.lowlatency
   touch debian.master/config/amd64/config.flavour.lowlatency
   ./scripts/config --file debian.master/config/amd64/config.common.amd64 --disable COMEDI_TESTS_EXAMPLE
@@ -244,6 +248,10 @@ then
   if [ "$flavour" == "none" ]
   then
     do_metapackage "${kver:1}" "generic" "$series" "$maintainer" "$abinum" "$btype"
+    if [ -f debian.master/control.d/vars.lowlatency ]
+    then
+      do_metapackage "${kver:1}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
+    fi
   else
     do_metapackage "${kver:1}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
   fi
