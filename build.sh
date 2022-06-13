@@ -15,6 +15,7 @@ patch=no
 series=focal
 checkbugs=yes
 buildmeta=no
+debug=no
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
 
@@ -83,7 +84,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -177,6 +178,12 @@ then
       echo "disable_d_i     = true" >> debian.master/rules.d/amd64.mk
     fi
   done
+fi
+
+if [ "$debug" == yes ]
+then
+  echo -e "********\n\nEnabling Debug packages\n\n********\n"
+  sed -i -re "s/skipdbg\s*=\s*true/skipdbg = false/g" debian/rules.d/0-common-vars.mk
 fi
 
 if [ "$checkbugs" == "yes" ]

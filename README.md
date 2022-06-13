@@ -141,3 +141,6 @@ using apt.
 * Maintainer: If you want to sign the metapackage (for PPA upload), then you need to provide the details of your
 signing key by passing `--maintainer="Me <me@mine.org>"`
 
+* Debug Symbols: If you want to package a version of the kernel which includes debug-symbols,
+then pass `--debug=yes` to the binary build.
+
