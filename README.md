@@ -39,7 +39,7 @@ sudo chown $(whoami) /usr/local/src/cod
   ```
   You should also pass `--update=no` when checking out only a single release.
 
-2. Create a directory to receive the debian packages
+2. Create a directory to receive the Debian packages
 ```
 mkdir /usr/local/src/cod/debs
 ```
@@ -75,7 +75,7 @@ sudo docker run -ti -e kver=v5.12.1 -v /usr/local/src/cod/mainline:/home/source 
      --maintainer="Zaphod <zaphod@betelgeuse-seven.western-spiral-arm.milkyway>"
 ```
 
-The linux source package builds some debs which are linked (by name) against the kernel and some
+The Linux source package builds some debs which are linked (by name) against the kernel and some
 which are common. Using `--rename=yes` allows us to store multiple kernels in the same PPA by changing
 the name of the source package and the linking all binaries (by name) to a specific kernel.
 
@@ -112,17 +112,17 @@ the type of build performed. Default is `binary`.
 the build process. Default is `no`
 
 * Sign: You can pass `--sign=<secret-key-id>` to sign source packages ready for uploading
-to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cotainer.
+to a PPA. Default is `no`. You'll also need to mount your GPG keys into the container.
 Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
 
-* Falvour: You can pass `--flavour=[generic|lowlatency]` if you want to select the build
+* Flavour: You can pass `--flavour=[generic|lowlatency]` if you want to select the build
 flavour. The default is `none`, and we build both flavours (only generic on 5.16.12+).
 
 * Exclude: You can pass `--exclude=[cloud-tools,udebs]` to exclude one or more packages.
 Default is `none`.
 
 * Rename: You can pass `--rename=[yes|no]` to rename the source package to be kernel release specific.
-This enables hosting multple kernels in the same PPA. Use with `--exclude=tools,udebs` to stop
+This enables hosting multiple kernels in the same PPA. Use with `--exclude=tools,udebs` to stop
 duplicate packages being built. Default is `no`
 
 * Series: You can pass `--series=[focal|groovy|...]` to set the ubuntu version you're building
