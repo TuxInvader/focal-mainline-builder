@@ -104,6 +104,9 @@ fi
 
 cd "$ksrc" || __die 1 "\$ksrc ${ksrc@Q} not found"
 
+# tell git to trust /home/source
+git config --global --add safe.directory /home/source
+
 echo -e "********\n\nCleaning git source tree\n\n********"
 git clean -fdx || __die 1 'git failed'
 git reset --hard HEAD
@@ -154,6 +157,12 @@ else
   sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
 fi
 sed -i -re 's/dwarves \[/dwarves (>=1.21) \[/g' debian.master/control.stub.in
+
+# undo GCC-11 update
+sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
+#sed -i -re 's/CONFIG_CC_VERSION_TEXT=.*/CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0"/' debian.master/config/amd64/config.common.amd64
+#sed -i -re 's/CONFIG_GCC_VERSION=.*/CONFIG_GCC_VERSION=90400/' debian.master/config/config.common.ubuntu
+
 
 if [ "$flavour" != "none" ]
 then
