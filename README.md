@@ -17,6 +17,26 @@ I upload my mainline kernels to these PPAs
 | mainline/stable |[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages)|
 |longterm|[lts-mainline-longterm PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm)|[lts-mainline-longterm Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm/+packages)|
 
+## building the container
+
+To build the container with `docker` you would use:
+```
+docker build -t <org>/<image>:<tag> -f Dockerfile.<series> .
+```
+
+I build and push the Jammy series image using:
+
+```
+docker build -t tuxinvader/jammy-mainline-builder:latest -f Dockerfile.jammy .
+docker push tuxinvader/jammy-mainline-builder:latest
+```
+
+and focal with:
+```
+docker build -t tuxinvader/focal-mainline-builder:latest -f Dockerfile.focal .
+docker push tuxinvader/focal-mainline-builder:latest
+```
+
 ## Usage
 
 1. Checkout the Mainline kernel from Ubuntu
