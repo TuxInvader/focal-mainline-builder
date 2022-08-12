@@ -158,11 +158,11 @@ else
 fi
 sed -i -re 's/dwarves \[/dwarves (>=1.21) \[/g' debian.master/control.stub.in
 
-# undo GCC-11 update
-sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
-#sed -i -re 's/CONFIG_CC_VERSION_TEXT=.*/CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0"/' debian.master/config/amd64/config.common.amd64
-#sed -i -re 's/CONFIG_GCC_VERSION=.*/CONFIG_GCC_VERSION=90400/' debian.master/config/config.common.ubuntu
-
+# undo GCC-11 update in focal
+if [ "$series" == "focal" ]
+then
+  sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
+fi
 
 if [ "$flavour" != "none" ]
 then
