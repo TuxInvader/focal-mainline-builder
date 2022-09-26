@@ -59,7 +59,7 @@
       - name: End play when the latest kernel exists in the PPA
         meta: end_play
 
-      when: ppa_info.details | json_query( pkg_query ) is defined
+      when: ppa_info.details | json_query( pkg_query ) | length > 0
       vars:
         pkg_query: "sources[?source_package_name == `{{ 'linux-' ~ kernel_version }}`].[source_package_name]"
 
