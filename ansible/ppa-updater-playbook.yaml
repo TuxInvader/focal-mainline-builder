@@ -110,7 +110,7 @@
     - name: Upload new Kernel packages to PPA
       ppa_upload_package:
         source_changes: "{{ item.path }}"
-        ppa: "{{ lp_project}}/{ lp_ppa }}"
+        ppa: "{{ lp_project }}/{{ lp_ppa }}"
       with_items: "{{ source_files.files }}"
       
 
