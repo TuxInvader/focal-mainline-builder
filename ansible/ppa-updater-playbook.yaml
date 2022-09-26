@@ -1,0 +1,116 @@
+- hosts: localhost
+  become: false
+  collections:
+    - tuxinvader.launchpad
+    - community.docker
+
+  vars:
+    lp_project:                   "~tuxinvader"
+    lp_ppa:                       "lts-mainline"
+    lp_lts_version:               "focal"
+    lp_singing_key:               "{{ secret_signing_key }}"
+    lp_maintainer:                "{{ secret_maintainer_email }}"
+
+    build_flavour:                "generic"
+    build_gpg_path:               "{{ secret_gpg_path }}"
+    build_kernel_source_path:     "/usr/local/src/cod/mainline"
+    build_packages_path:          "/usr/local/src/cod/debs"
+
+    kernel_series:                "stable"
+    kernel_major_minor:           ""
+
+  environment:
+    LP_ACCESS_TOKEN:    "{{ secret_access_token }}"
+    LP_ACCESS_SECRET:   "{{ secret_access_secret }}"
+
+  tasks:
+
+    - name: Get latest kernel releases
+      uri:
+        url: https://www.kernel.org/releases.json
+        return_content: yes
+      register: kdist
+
+    - name: Set the kernel version fact
+      set_fact:
+        kernel_version: "{{ item }}"
+      with_items: "{{ kdist.json | json_query( kernel_query ) }}"
+      vars:
+        kernel_query: "releases[?moniker == '{{ kernel_series }}' && starts_with(version, '{{kernel_major_minor}}')].[version]"
+
+    - name: Get the published packages from the PPA 
+      ppa_info:
+        project: "{{ lp_project }}"
+        name: "{{ lp_ppa }}"
+        authorize: false
+      register: ppa_info
+
+    - name: Checking PPA for our selected kernel
+      debug:
+        msg: "Selected Kernel version: {{ kernel_version }}"
+
+    - block:
+    
+      - name: End play when the latest kernel exists in the PPA
+        debug:
+          msg: "Found PPA package: {{ item }} - ending play"
+        with_items: "{{ ppa_info.details | json_query( pkg_query ) }}"
+
+      - name: End play when the latest kernel exists in the PPA
+        meta: end_play
+
+      when: ppa_info.details | json_query( pkg_query ) is defined
+      vars:
+        pkg_query: "sources[?source_package_name == `{{ 'linux-' ~ kernel_version }}`].[source_package_name]"
+
+    - name: Execute Docker build
+      community.docker.docker_container:
+        image: "tuxinvader/{{ lp_lts_version }}-mainline-builder:latest"
+        name: "kbuild-{{ lp_lts_version }}"
+        auto_remove: no
+        interactive: yes
+        detach: no
+        tty: yes
+        timeout: 300
+        env:
+          kver: "v{{kernel_version}}"
+        command:
+          - --btype=source
+          - --exclude=udebs
+          - --sign={{ lp_singing_key }}
+          - --rename=yes
+          - --buildmeta=yes
+          - --maintainer={{ lp_maintainer }}
+          - --flavour={{ build_flavour }}
+          - --checkbugs=yes
+          - --update=yes
+        volumes:
+          - "{{ build_gpg_path }}:/root/keys"
+          - "{{ build_kernel_source_path }}:/home/source"
+          - "{{ build_packages_path }}:/home/debs"
+
+    - name: Remove Docker container
+      community.docker.docker_container:
+        name: "kbuild-{{ lp_lts_version }}"
+        state: absent
+
+    - name: Locate the source.changes files
+      find:
+        paths: "{{ build_packages_path }}/v{{ kernel_version }}/"
+        file_type: file
+        patterns: linux*_source.changes
+      register: source_files
+
+    - name: Prune the PPA to 4 packages
+      prune_ppa:
+        project: "{{ lp_project }}"
+        name: "{{ lp_ppa }}"
+        max_sources: 4
+
+    - name: Upload new Kernel packages to PPA
+      ppa_upload_package:
+        source_changes: "{{ item.path }}"
+        ppa: "{{ lp_project}}/{ lp_ppa }}"
+      with_items: "{{ source_files.files }}"
+      
+
