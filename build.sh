@@ -140,13 +140,16 @@ then
   fi
 fi
 
+# Replace any -rc# in the version with .rc# 
+kver="${kver/-/.}"
+
 # prep
 echo -e "********\n\nRenaming source package and updating control files\n\n********"
 debversion=$(date +%Y%m%d%H%M)
 abinum=$(echo ${kver:1} | awk -F. '{printf "%02d%02d%02d", $1,$2,$3 }')
 if [ "$rename" == "yes" ]
 then
-  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux-${kver:1} (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
+  sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([^\.]*)\.[0-9]+\) ([^;]*)(.*)/linux-${kver:1} (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
   sed -i -re 's/SRCPKGNAME/linux/g' debian.master/control.stub.in
   sed -i -re 's/SRCPKGNAME/linux/g' debian.master/control.d/flavour-control.stub
   sed -i -re "s/Source: linux/Source: linux-${kver:1}/" debian.master/control.stub.in
