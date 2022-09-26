@@ -82,6 +82,7 @@
           - --buildmeta=yes
           - --maintainer={{ lp_maintainer }}
           - --flavour={{ build_flavour }}
+          - --series={{ lp_lts_version }}
           - --checkbugs=yes
           - --update=yes
         volumes:
