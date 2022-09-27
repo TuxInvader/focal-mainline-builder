@@ -13,7 +13,7 @@ Alternatively it can build signed source packages for uploading to a PPA.
 I upload my mainline kernels to these PPAs
 
 | Kernel Version | Series | PPA Link | Packages |
-|----------------|----------|----------|
+|----------------|--------|----------|----------|
 | mainline/stable | focal |[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages)|
 | mainline/stable | jammy |[jammy-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/jammy-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/jammy-mainline/+packages)|
 |longterm | focal |[lts-mainline-longterm PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm)|[lts-mainline-longterm Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm/+packages)|
