@@ -12,10 +12,11 @@ Alternatively it can build signed source packages for uploading to a PPA.
 
 I upload my mainline kernels to these PPAs
 
-| Kernel Version | PPA Link | Packages |
+| Kernel Version | Series | PPA Link | Packages |
 |----------------|----------|----------|
-| mainline/stable |[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages)|
-|longterm|[lts-mainline-longterm PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm)|[lts-mainline-longterm Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm/+packages)|
+| mainline/stable | focal |[lts-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline/+packages)|
+| mainline/stable | jammy |[jammy-mainline PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/jammy-mainline)|[lts-mainline Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/jammy-mainline/+packages)|
+|longterm | focal |[lts-mainline-longterm PPA](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm)|[lts-mainline-longterm Packages](https://launchpad.net/~tuxinvader/+archive/ubuntu/lts-mainline-longterm/+packages)|
 
 ## building the container
 
@@ -136,7 +137,7 @@ to a PPA. Default is `no`. You'll also need to mount your GPG keys into the cont
 Eg: `-v ~/.gnupg:/root/keys` and specify `--btype=source`
 
 * Flavour: You can pass `--flavour=[generic|lowlatency]` if you want to select the build
-flavour. The default is `none`, and we build both flavours (only generic on 5.16.12+).
+flavour. The default is `none`, and we build the generic flavour (since 5.16.12+).
 
 * Exclude: You can pass `--exclude=[cloud-tools,udebs]` to exclude one or more packages.
 Default is `none`.
