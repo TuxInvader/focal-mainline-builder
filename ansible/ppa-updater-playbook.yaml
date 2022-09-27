@@ -72,8 +72,6 @@
         detach: no
         tty: yes
         timeout: 300
-        env:
-          kver: "v{{kernel_version}}"
         command:
           - --btype=source
           - --exclude=udebs
@@ -83,8 +81,10 @@
           - --maintainer={{ lp_maintainer }}
           - --flavour={{ build_flavour }}
           - --series={{ lp_lts_version }}
+          - --kver=v{{kernel_version}}
           - --checkbugs=yes
           - --update=yes
+          - --shallow=yes
         volumes:
           - "{{ build_gpg_path }}:/root/keys"
           - "{{ build_kernel_source_path }}:/home/source"

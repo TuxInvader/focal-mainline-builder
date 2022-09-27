@@ -12,10 +12,12 @@ flavour=none
 exclude=none
 rename=no
 patch=no
-series=focal
+series="$series"
 checkbugs=yes
 buildmeta=no
 debug=no
+shallow=no
+kver="$kver"
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
 
@@ -29,6 +31,13 @@ do_metapackage() {
   BTYPE=$6
   BINS="${KVER}-${ABINUM}-${FLAVOUR}"
   DEPS="linux-headers-${BINS}, linux-image-unsigned-${BINS}, linux-modules-${BINS}"
+
+  # fix jammy equivs-build
+  # Blame: https://salsa.debian.org/perl-team/modules/packages/equivs/-/commit/a99d769bbf7c0ef30502c61fdcbb880be0e00e8e
+  #if [ "$SERIES" == "jammy" ]
+  #then
+  # sed -i -re 's/-uc -us//g' /usr/bin/equivs-build
+  #fi
 
   [ -d "../meta" ] || mkdir ../meta
   cd ../meta
@@ -59,13 +68,39 @@ do_metapackage() {
 
 		 -- ${MAINT}  $(date -R)
 	EOF
+
   mkdir -p "source/usr/share/doc/linux-generic-${VERSION}"
-  tar -C source -zcpf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
+  cat > "source/usr/share/doc/linux-generic-${VERSION}/README" <<-EOF
+		This meta-package will always depend on the latest ${VERSION} kernel
+		That is currently: ${KVER}
+	EOF
+
+  grep "native" /usr/share/equivs/template/debian/source/format > /dev/null
+  native=$?
+
+  if [ "$native" == "0" ]
+  then
+    echo "Extra-Files: source/usr/share/doc/linux-generic-${VERSION}/README" >> metapackage.control
+  else
+    tar -C source -zcpf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
+  fi
+
   equivs-build metapackage.control
   if [ "$BTYPE" == "source" ]
   then
+    echo "Building source"
     equivs-build --source metapackage.control
   fi
+
+  changesfile="linux-${FLAVOUR}-${VERSION}_${KVER}_source.changes"
+  grep "BEGIN PGP SIGNED MESSAGE" "$changesfile" > /dev/null
+  signed=$?
+
+  if [ "$signed" != "0" ]
+  then
+    debsign -m"${MAINT}" "${changesfile}"
+  fi
+
   mv linux-* ../
   cd -
 }
@@ -84,7 +119,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|shallow)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -113,8 +148,15 @@ git reset --hard HEAD
 
 if [ "$update" == "yes" ]
 then
-  echo -e "********\n\nUpdating git source tree\n\n********"
-  git fetch --tags origin 
+  if [ "$shallow" == "yes" ]
+  then
+    echo -e "********\n\nUpdating git source tree (shallow since last 14 days, depth 1)\n\n********"
+    fortnight=$(date --date 'last fortnight' +%Y-%m-%d)
+    git fetch --tags origin --shallow-since="$fortnight" --depth=1
+  else
+    echo -e "********\n\nUpdating git source tree\n\n********"
+    git fetch --tags origin
+  fi
 fi
 
 # checkout the kver
@@ -139,9 +181,6 @@ then
     __die 1 "Patch version should be a kernel version, Eg v5.11.19"
   fi
 fi
-
-# Replace any -rc# in the version with .rc# 
-kver="${kver/-/.}"
 
 # prep
 echo -e "********\n\nRenaming source package and updating control files\n\n********"
