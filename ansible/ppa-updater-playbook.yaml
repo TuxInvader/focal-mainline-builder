@@ -54,12 +54,12 @@
       - name: End play when the latest kernel exists in the PPA
         debug:
           msg: "Found PPA package: {{ item }} - ending play"
-        with_items: "{{ ppa_info.details | json_query( pkg_query ) }}"
+        with_items: "{{ ppa_info | json_query( pkg_query ) }}"
 
       - name: End play when the latest kernel exists in the PPA
         meta: end_play
 
-      when: ppa_info.details | json_query( pkg_query ) | length > 0
+      when: ppa_info | json_query( pkg_query ) | length > 0
       vars:
         pkg_query: "sources[?source_package_name == `{{ 'linux-' ~ kernel_version }}`].[source_package_name]"
 
