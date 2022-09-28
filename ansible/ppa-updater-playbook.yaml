@@ -84,7 +84,6 @@
           - --kver=v{{kernel_version}}
           - --checkbugs=yes
           - --update=yes
-          - --shallow=yes
         volumes:
           - "{{ build_gpg_path }}:/root/keys"
           - "{{ build_kernel_source_path }}:/home/source"

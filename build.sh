@@ -16,7 +16,6 @@ series="$series"
 checkbugs=yes
 buildmeta=no
 debug=no
-shallow=no
 kver="$kver"
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
@@ -119,7 +118,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|shallow)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -148,15 +147,8 @@ git reset --hard HEAD
 
 if [ "$update" == "yes" ]
 then
-  if [ "$shallow" == "yes" ]
-  then
-    echo -e "********\n\nUpdating git source tree (shallow since last 14 days, depth 1)\n\n********"
-    fortnight=$(date --date 'last fortnight' +%Y-%m-%d)
-    git fetch --tags origin --shallow-since="$fortnight" --depth=1
-  else
-    echo -e "********\n\nUpdating git source tree\n\n********"
-    git fetch --tags origin
-  fi
+  echo -e "********\n\nUpdating git source tree\n\n********"
+  git fetch --tags origin
 fi
 
 # checkout the kver
