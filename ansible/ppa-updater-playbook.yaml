@@ -42,7 +42,6 @@
       ppa_info:
         project: "{{ lp_project }}"
         name: "{{ lp_ppa }}"
-        authorize: false
       register: ppa_info
 
     - name: Checking PPA for our selected kernel
