@@ -18,7 +18,7 @@
 
     kernel_series:                "stable"
     kernel_major_minor:           ""
-    stable_check_mainline:        True
+    stable_check_mainline:        False
 
   environment:
     LP_ACCESS_TOKEN:    "{{ secret_access_token }}"
