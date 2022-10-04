@@ -38,8 +38,9 @@
       with_items: "{{  kdist.json | json_query( kernel_query ) }}"
       vars:
         kernel_query: "releases[?moniker == 'mainline' && starts_with(version, '{{kernel_major_minor}}')].[version]"
-      when: stable_check_mainline
-      when: item is version( (kernel_version | default('1.0.0')), '>')
+      when:
+        - stable_check_mainline
+        - item is version( (kernel_version | default('1.0.0')), '>')
 
     - name: Set the kernel version fact
       set_fact:
@@ -47,8 +48,9 @@
       with_items: "{{ kdist.json | json_query( kernel_query ) }}"
       vars:
         kernel_query: "releases[?moniker == '{{ kernel_series }}' && starts_with(version, '{{kernel_major_minor}}')].[version]"
-      when: kernel_version | default("") == ""
-      when: item is version( (kernel_version | default('1.0.0')), '>')
+      when:
+        - kernel_version | default("") == ""
+        - item is version( (kernel_version | default('1.0.0')), '>')
 
     - name: Get the published packages from the PPA 
       ppa_info:
