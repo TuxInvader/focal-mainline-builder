@@ -48,12 +48,17 @@ as the paths to the mainline kernel source, and the output folder for packages.
 
     kernel_series:                "stable"
     kernel_major_minor:           ""
+    stable_check_mainline:        False
 ```
 
 You can also set the `kernel_series` to one of `stable`, `mainline`, or `longterm`.
 The `mainline` option will build the latest RC kernel, but if you chose the
-`longterm` option you should also set `kernel_major_minor` to match one of the
-LTS kernels (eg 5.15), otherwise you'll get the oldest one (eg 4.9.x).
+`longterm` option you might want to also set `kernel_major_minor` to match one of the
+LTS kernels (eg 5.15), otherwise you'll get the newest one (eg 5.15.x).
+
+If you're following "stable", then note that the new releases are published in "mainline"
+first. You can set `stable_check_mainline` to `True` if you want new (non-rc) kernels
+to be preferred over the newest stable.
 
 Once you've made those changes, you can run the playbook on cron to keep the PPA
 updated with the latest kernels
