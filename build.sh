@@ -17,6 +17,7 @@ checkbugs=yes
 buildmeta=no
 debug=no
 kver="$kver"
+subver="0"
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
 
@@ -118,7 +119,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|subver)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -272,7 +273,9 @@ then
 fi
 
 echo -e "********\n\nApplying default configs\n\n********"
+echo 'archs="amd64"' > debian.master/etc/kernelconfig
 fakeroot debian/rules clean defaultconfigs
+fakeroot debian/rules importconfigs
 fakeroot debian/rules clean
 
 if [ "$shell" == "yes" ]
@@ -297,13 +300,13 @@ if [ "$buildmeta" == "yes" ]
 then
   if [ "$flavour" == "none" ]
   then
-    do_metapackage "${kver:1}" "generic" "$series" "$maintainer" "$abinum" "$btype"
+    do_metapackage "${kver:1}.${subver}" "generic" "$series" "$maintainer" "$abinum" "$btype"
     if [ -f debian.master/control.d/vars.lowlatency ]
     then
-      do_metapackage "${kver:1}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
+      do_metapackage "${kver:1}.${subver}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
     fi
   else
-    do_metapackage "${kver:1}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
+    do_metapackage "${kver:1}.${subver}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
   fi
 fi
 
