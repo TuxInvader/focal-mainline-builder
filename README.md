@@ -170,7 +170,7 @@ using apt.
 
 * Meta Time: The source (orig.tar.gz) tarball is immutable on launchpad, so we need to ensure the ordering, contents, and
   modification times match on every build. The timestamp defaults to "2023-01-01 00:00:00", but you can override it with
-  `--metatime=<epoc-seconds>`
+  `--metatime=<epoch-seconds>`
 
 * Meta Version: We now append `-n` to meta-packages so that we can republish/rebuild them on launchpad by incrementing
   the version. You also need to ensure the metatime is consistent, else the orig.tar.gz will be rejected. The version
