@@ -15,10 +15,13 @@
     build_gpg_path:               "{{ secret_gpg_path }}"
     build_kernel_source_path:     "/usr/local/src/cod/mainline"
     build_packages_path:          "/usr/local/src/cod/debs"
+    build_meta_version:           0
+    build_meta_only:              "no"
 
     kernel_series:                "stable"
     kernel_major_minor:           ""
     stable_check_mainline:        False
+    skip_ppa_check:               False
 
   environment:
     LP_ACCESS_TOKEN:    "{{ secret_access_token }}"
@@ -34,23 +37,25 @@
 
     - name: Set the mainline kernel version fact
       set_fact:
-        kernel_version: "{{ item | regex_search('^[0-9]+\\.[0-9]+(\\.[0-9]+)*$') }}"
+        kernel_version: "{{ item.version | regex_search('^[0-9]+\\.[0-9]+(\\.[0-9]+)*$') }}"
+        kernel_timestamp: "{{ item.released.timestamp }}"
       with_items: "{{  kdist.json | json_query( kernel_query ) }}"
       vars:
-        kernel_query: "releases[?moniker == 'mainline' && starts_with(version, '{{kernel_major_minor}}')].[version]"
+        kernel_query: "releases[?moniker == 'mainline' && starts_with(version, '{{kernel_major_minor}}')]"
       when:
         - stable_check_mainline
-        - item is version( (kernel_version | default('1.0.0')), '>')
+        - item.version is version( (kernel_version | default('1.0.0')), '>')
 
     - name: Set the kernel version fact
       set_fact:
-        kernel_version: "{{ item }}"
+        kernel_version: "{{ item.version }}"
+        kernel_timestamp: "{{ item.released.timestamp }}"
       with_items: "{{ kdist.json | json_query( kernel_query ) }}"
       vars:
-        kernel_query: "releases[?moniker == '{{ kernel_series }}' && starts_with(version, '{{kernel_major_minor}}')].[version]"
-      when:
-        - kernel_version | default("") == ""
-        - item is version( (kernel_version | default('1.0.0')), '>')
+        kernel_query: "releases[?moniker == '{{ kernel_series }}' && starts_with(version, '{{kernel_major_minor}}')]"
+      when: (kernel_version is not defined) or
+            (kernel_version == "" ) or
+            (item.version is version( (kernel_version | default('1.0.0')), '>'))
 
     - name: Get the published packages from the PPA 
       ppa_info:
@@ -72,7 +77,9 @@
       - name: End play when the latest kernel exists in the PPA
         meta: end_play
 
-      when: ppa_info | json_query( pkg_query ) | length > 0
+      when:
+      - ppa_info | json_query( pkg_query ) | length > 0
+      - not skip_ppa_check
       vars:
         pkg_query: "sources[?source_package_name == `{{ 'linux-' ~ kernel_version }}`].[source_package_name]"
 
@@ -97,6 +104,9 @@
           - --kver=v{{kernel_version}}
           - --checkbugs=yes
           - --update=yes
+          - --metaver={{build_meta_version}}
+          - --metaonly={{build_meta_only}}
+          - --metatime={{kernel_timestamp}}
         volumes:
           - "{{ build_gpg_path }}:/root/keys"
           - "{{ build_kernel_source_path }}:/home/source"
@@ -114,10 +124,20 @@
         patterns: linux*_source.changes
       register: source_files
 
-    - name: Prune the PPA to 4 packages
+    - name: Prune the PPA to 2 source packages
+      prune_ppa:
+        source_name: "linux-[0-9]+.*"
+        match: regex
+        project: "{{ lp_project }}"
+        name: "{{ lp_ppa }}"
+        prune_by: version
+        max_sources: 2
+
+    - name: Prune the PPA to 4 packages by version
       prune_ppa:
         project: "{{ lp_project }}"
         name: "{{ lp_ppa }}"
+        prune_by: version
         max_sources: 4
 
     - name: Upload new Kernel packages to PPA
