@@ -12,23 +12,27 @@ flavour=none
 exclude=none
 rename=no
 patch=no
-series="$series"
+series="jammy"
 checkbugs=yes
 buildmeta=no
 debug=no
 kver="$kver"
-subver="0"
+metaver="0"
+metatime=1672531200
+metaonly=no
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
 
 do_metapackage() {
   KVER=$1
+  METAVER=$2
+  METATIME="$(date -d @${3} '+UTC %Y-%m-%d %T')"
   VERSION=$(echo ${KVER} | awk -F. '{printf "%d.%02d", $1,$2 }')
-  FLAVOUR=$2
-  SERIES=$3
-  MAINT=$4
-  ABINUM=$5
-  BTYPE=$6
+  FLAVOUR=$4
+  SERIES=$5
+  MAINT=$6
+  ABINUM=$7
+  BTYPE=$8
   BINS="${KVER}-${ABINUM}-${FLAVOUR}"
   DEPS="linux-headers-${BINS}, linux-image-unsigned-${BINS}, linux-modules-${BINS}"
 
@@ -49,7 +53,7 @@ do_metapackage() {
 
 		Package: linux-${FLAVOUR}-${VERSION}
 		Changelog: changelog
-		Version: ${KVER}
+		Version: ${KVER}-${METAVER}
 		Maintainer: ${MAINT}
 		Depends: ${DEPS}
 		Architecture: amd64
@@ -61,7 +65,7 @@ do_metapackage() {
 		  linux-modules-5.12.x-generic, linux-headers-5.12.x-generic and linux-headers-5.12.x
 	EOF
 	cat > changelog <<-EOF
-		linux-${FLAVOUR}-${VERSION} (${KVER}) ${SERIES}; urgency=low
+		linux-${FLAVOUR}-${VERSION} (${KVER}-${METAVER}) ${SERIES}; urgency=low
 
 		  Metapackage for Linux ${VERSION}.x
 		  Mainline build at commit: v${KVER}
@@ -69,10 +73,14 @@ do_metapackage() {
 		 -- ${MAINT}  $(date -R)
 	EOF
 
-  mkdir -p "source/usr/share/doc/linux-generic-${VERSION}"
-  cat > "source/usr/share/doc/linux-generic-${VERSION}/README" <<-EOF
+  mkdir -p "source/usr/share/doc/linux-${FLAVOUR}-${VERSION}"
+  cat > "source/usr/share/doc/linux-${FLAVOUR}-${VERSION}/README" <<-EOF
 		This meta-package will always depend on the latest ${VERSION} kernel
-		That is currently: ${KVER}
+		To see which version that is you can execute:
+
+          $ apt-cache depends linux-${FLAVOUR}-${VERSION}
+
+        :wq
 	EOF
 
   grep "native" /usr/share/equivs/template/debian/source/format > /dev/null
@@ -80,9 +88,9 @@ do_metapackage() {
 
   if [ "$native" == "0" ]
   then
-    echo "Extra-Files: source/usr/share/doc/linux-generic-${VERSION}/README" >> metapackage.control
+    echo "Extra-Files: source/usr/share/doc/linux-${FLAVOUR}-${VERSION}/README" >> metapackage.control
   else
-    tar -C source -zcpf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
+    tar -C source --sort=name --owner=root:0 --group=root:0 --mtime="$METATIME" -zcf "linux-${FLAVOUR}-${VERSION}_${KVER}.orig.tar.gz" .
   fi
 
   equivs-build metapackage.control
@@ -92,7 +100,7 @@ do_metapackage() {
     equivs-build --source metapackage.control
   fi
 
-  changesfile="linux-${FLAVOUR}-${VERSION}_${KVER}_source.changes"
+  changesfile="linux-${FLAVOUR}-${VERSION}_${KVER}-${METAVER}_source.changes"
   grep "BEGIN PGP SIGNED MESSAGE" "$changesfile" > /dev/null
   signed=$?
 
@@ -119,7 +127,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|subver)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|metaver|metaonly|metatime)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -199,6 +207,15 @@ then
   sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
 fi
 
+# force python3 to python3.9 in focal
+if [ "$series" == "focal" ]
+then
+    sed -i -re 's#PYTHON=python3#PYTHON=python3.9\nexport PATH=$(shell pwd)/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin#' debian/rules
+    sed -i -re 's#dh_clean#dh_clean\n\n\trm -rf bin\n\tmkdir bin\n\tln -sf /usr/bin/python3.9 bin/python3\n\tenv\n\tpython3 --version\n#' debian/rules
+    sed -i -re 's# python3-dev <!stage1>,# python3-dev <!stage1>,\n python3.9-dev <!stage1>,\n python3.9-minimal <!stage1>,#g' debian.master/control.stub.in
+    sed -i -re 's#PYTHON3\s*=\s*python3#PYTHON3 = python3.9#' Makefile
+fi
+
 if [ "$flavour" != "none" ]
 then
   sed -i -re "s/(flavours\s+=).*/\1 $flavour/" debian.master/rules.d/amd64.mk
@@ -272,11 +289,14 @@ then
   ./scripts/config --file debian.master/config/amd64/config.common.amd64 --set-val TEST_DIV64 m
 fi
 
-echo -e "********\n\nApplying default configs\n\n********"
-echo 'archs="amd64"' > debian.master/etc/kernelconfig
-fakeroot debian/rules clean defaultconfigs
-fakeroot debian/rules importconfigs
-fakeroot debian/rules clean
+if [ "$metaonly" == "no" ]
+then
+  echo -e "********\n\nApplying default configs\n\n********"
+  echo 'archs="amd64"' > debian.master/etc/kernelconfig
+  fakeroot debian/rules clean defaultconfigs
+  #fakeroot debian/rules importconfigs
+  fakeroot debian/rules clean
+fi
 
 if [ "$shell" == "yes" ]
 then
@@ -292,21 +312,24 @@ then
 fi
 
 # Build
-echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
-dpkg-buildpackage --build=$btype $buildargs
+if [ "$metaonly" == "no" ]
+then
+    echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
+    dpkg-buildpackage --build=$btype $buildargs
+fi
 
 echo -e "********\n\nBuilding meta package\n\n********"
 if [ "$buildmeta" == "yes" ]
 then
   if [ "$flavour" == "none" ]
   then
-    do_metapackage "${kver:1}.${subver}" "generic" "$series" "$maintainer" "$abinum" "$btype"
+    do_metapackage "${kver:1}" "${metaver}" "${metatime}" "generic" "$series" "$maintainer" "$abinum" "$btype"
     if [ -f debian.master/control.d/vars.lowlatency ]
     then
-      do_metapackage "${kver:1}.${subver}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
+      do_metapackage "${kver:1}" "${metaver}" "${metatime}" "lowlatency" "$series" "$maintainer" "$abinum" "$btype"
     fi
   else
-    do_metapackage "${kver:1}.${subver}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
+    do_metapackage "${kver:1}" "${metaver}" "${metatime}" "$flavour" "$series" "$maintainer" "$abinum" "$btype"
   fi
 fi
 
