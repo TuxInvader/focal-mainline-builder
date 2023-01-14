@@ -155,13 +155,24 @@ duplicate packages being built. Default is `no`
 * Check bugs: You can pass `--checkbugs=yes` to work around any known bugs, currently this is required
 to build older 5.10.x and 5.11.x kernels see bug #4
 
-* Build metapackage: You can pass `--buildmeta=[yes|no]` to build a metapackage named `linux-<flavour>-<major version>`
-that will depend on the kernel you are building. This makes it easy to track the latest release and auto-update
-using apt.
-
 * Maintainer: If you want to sign the metapackage (for PPA upload), then you need to provide the details of your
 signing key by passing `--maintainer="Me <me@mine.org>"`
 
 * Debug Symbols: If you want to package a version of the kernel which includes debug-symbols,
 then pass `--debug=yes` to the binary build.
 
+* Build metapackage: You can pass `--buildmeta=[yes|no]` to build a metapackage named `linux-<flavour>-<major version>`
+that will depend on the kernel you are building. This makes it easy to track the latest release and auto-update
+using apt.
+
+* Meta Only: You can decide to just rebuild the metapackage by passing `--metaonly=yes`, useful for rolling back a release
+  should it fail to build.
+
+* Meta Time: The source (orig.tar.gz) tarball is immutable on launchpad, so we need to ensure the ordering, contents, and
+  modification times match on every build. The timestamp defaults to "2023-01-01 00:00:00", but you can override it with
+  `--metatime=<epoc-seconds>`
+
+* Meta Version: We now append `-n` to meta-packages so that we can republish/rebuild them on launchpad by incrementing
+  the version. You also need to ensure the metatime is consistent, else the orig.tar.gz will be rejected. The version
+  defaults to 0, eg linux 6.1.0 would be linux-generic-6.01_6.1.0-0, passing `--metaver=1` would result in 
+  linux-generic-6.01_6.1.0-1
