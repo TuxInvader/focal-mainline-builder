@@ -166,7 +166,7 @@ that will depend on the kernel you are building. This makes it easy to track the
 using apt.
 
 * Meta Only: You can decide to just rebuild the metapackage by passing `--metaonly=yes`, useful for rolling back a release
-  should it fail to build.
+  should it fail to build. This needs to be combined with `--buildmeta=yes`.
 
 * Meta Time: The source (orig.tar.gz) tarball is immutable on launchpad, so we need to ensure the ordering, contents, and
   modification times match on every build. The timestamp defaults to "2023-01-01 00:00:00", but you can override it with
