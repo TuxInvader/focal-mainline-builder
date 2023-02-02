@@ -147,7 +147,7 @@ This enables hosting multiple kernels in the same PPA. Use with `--exclude=tools
 duplicate packages being built. Default is `no`
 
 * Series: You can pass `--series=[focal|groovy|...]` to set the ubuntu version you're building
-  for. Default is `focal`
+  for. Default is `jammy`
 
 * Patch: You can pass a patch version to apply upstream patch to the ubuntu kernel.
   Eg `--patch=v5.11.21` to patch v5.11.20 upto v5.11.21. Default is `no`
@@ -166,7 +166,7 @@ that will depend on the kernel you are building. This makes it easy to track the
 using apt.
 
 * Meta Only: You can decide to just rebuild the metapackage by passing `--metaonly=yes`, useful for rolling back a release
-  should it fail to build.
+  should it fail to build. This needs to be combined with `--buildmeta=yes`.
 
 * Meta Time: The source (orig.tar.gz) tarball is immutable on launchpad, so we need to ensure the ordering, contents, and
   modification times match on every build. The timestamp defaults to "2023-01-01 00:00:00", but you can override it with
