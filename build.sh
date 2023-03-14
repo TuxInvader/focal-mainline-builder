@@ -207,6 +207,19 @@ then
   sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
 fi
 
+# Revert rust dependencies on focal 6.1 and 6.2 kernels
+if [ "$series" == "focal" ]
+then
+  if [ "$abinum" -ge "060100" ] && [ "$abinum" -lt 060200 ]
+  then
+    git diff -pR cod/mainline/v6.1.15 debian.master/control.stub.in | patch -p1
+  fi
+  if [ "$abinum" -ge "060200" ] && [ "$abinum" -lt 060300 ]
+  then
+    git diff -pR cod/mainline/v6.2.1 debian.master/control.stub.in | patch -p1
+  fi
+fi
+
 # force python3 to python3.9 in focal
 if [ "$series" == "focal" ]
 then
