@@ -257,20 +257,6 @@ then
     echo " ---> debian.env bug == yes"
     echo "DEBIAN=debian.master" > debian/debian.env
   fi
-  grep "CONFIG_KERNEL_LZ4=y" debian.master/config/amd64/config.common.amd64 > /dev/null
-  if [ $? == 0 ]
-  then
-    # LZ4 Compression enabled. Check it's listed as a dependency
-    if [ ! "$( egrep -i "lz4.*amd" debian.master/control.stub.in )" ]
-    then
-      echo " ---> LZ4 dependency bug == yes"
-      sed -i -re "s/(^\s+lz4 )([^<]*)(.*)/\1[amd64 s390x] \3/" debian.master/control.stub.in
-    else
-      echo " ---> LZ4 dependency bug == no"
-    fi
-  else
-    echo " ---> LZ4 dependency bug == not used"
-  fi
 fi
 
 # Make lowlatency changes manually, the flavour was removed in 5.16.12 and newer
