@@ -207,16 +207,14 @@ then
   sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
 fi
 
-# Revert rust dependencies on focal 6.1 and 6.2 kernels
+# Revert rust dependencies on focal for 6.1+
 if [ "$series" == "focal" ]
 then
-  if [ "$abinum" -ge "060100" ] && [ "$abinum" -lt 060200 ]
+  if [ "$abinum" -ge "060100" ]
   then
-    git diff -pR cod/mainline/v6.1.15 debian.master/control.stub.in | patch -p1
-  fi
-  if [ "$abinum" -ge "060200" ] && [ "$abinum" -lt 060300 ]
-  then
-    git diff -pR cod/mainline/v6.2.1 debian.master/control.stub.in | patch -p1
+    sed -i -re 's/^ (rust|bindgen|clang|llvm)(.*)/#\1\2/g' debian.master/control.stub.in
+    sed -i -re "s#CONFIG_HAVE_RUST.*#CONFIG_HAVE_RUST                                policy<{'amd64': 'n'}>#" debian.master/config/annotations
+    sed -i -re "s#CONFIG_RUST_IS_AVAILABLE.*#CONFIG_RUST_IS_AVAILABLE                        policy<{'amd64': 'n'}>#" debian.master/config/annotations
   fi
 fi
 
