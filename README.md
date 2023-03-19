@@ -176,3 +176,8 @@ using apt.
   the version. You also need to ensure the metatime is consistent, else the orig.tar.gz will be rejected. The version
   defaults to 0, eg linux 6.1.0 would be linux-generic-6.01_6.1.0-0, passing `--metaver=1` would result in 
   linux-generic-6.01_6.1.0-1
+
+* Have Rust: Build a kernel with rust support? The `haverust` flag defaults to `no` on focal and `yes` on other releases.
+  Currently building on jammy requires `--haverust=no` because bindgen-0.56 is unavailable. 
+  See this [Ubuntu backport bug](https://bugs.launchpad.net/ubuntu/+source/rustc-1.62/+bug/1993183)
+
