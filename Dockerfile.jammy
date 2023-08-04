@@ -32,9 +32,11 @@ RUN set -x \
     libiberty-dev autoconf bc build-essential libusb-1.0-0-dev libhidapi-dev curl wget \
     cpio makedumpfile libcap-dev libnewt-dev libdw-dev rsync gnupg2 ca-certificates\
     libunwind8-dev liblzma-dev libaudit-dev uuid-dev libnuma-dev lz4 xmlto equivs \
-    cmake pkg-config zstd dwarves devscripts
+    cmake pkg-config zstd dwarves devscripts python3-docutils asciidoc \
+    bindgen-0.56 rust-1.62-src
 
 COPY build.sh /build.sh
+COPY custom /custom
 
 ENTRYPOINT ["/build.sh"]
 CMD ["--update=yes", "--btype=binary"]
