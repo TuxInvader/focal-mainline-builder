@@ -2,6 +2,7 @@
 set -u
 
 export LANG=C
+export RUST_BACKTRACE=full
 
 update=yes
 btype=binary
@@ -22,7 +23,10 @@ metatime=1672531200
 metaonly=no
 maintainer="Zaphod Beeblebrox <zaphod@betelgeuse-seven.western-spiral-arm.change.me.to.match.signing.key>"
 buildargs="-aamd64 -d"
-
+branch=""
+bundle=no
+stype=crack
+clean=no
 
 do_metapackage() {
   KVER=$1
@@ -113,6 +117,55 @@ __die() {
   printf 1>&2 '%s\n' "ERROR: $*"; exit $rc
 }
 
+__update_sources() {
+  echo -e ">>> Args.... update is $update"
+  cd /home/source/
+
+  if [ -z "${branch}" ]
+  then
+    if [ ${stype} == "crack" ]
+    then
+      branch="cod/mainline/${kver}"
+    else
+      branch="${kver}"
+    fi
+  fi
+
+  if [ "${update}" == "new" ]
+  then
+    [ "$(ls -A /home/source)" != "" ] && __die 1 "/home/source must be empty when using 'update=new'"
+    if [ ${stype} == "crack" ]
+    then
+      echo -e "********\n\nFetching git source from Launchpad, branch: $branch\n\n********"
+      git clone --depth 1 git://git.launchpad.net/~ubuntu-kernel-test/ubuntu/+source/linux/+git/mainline-crack \
+        --branch "${branch}" /home/source --single-branch || __die 1 "Failed to checkout source from launchpad"
+    else
+      echo -e "********\n\nFetching git source from Kernel.org, branch: $branch\n\n********"
+      git clone --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git \
+        --branch "${branch}" /home/source --single-branch || __die 1 "Failed to checkout source from kernel.org"
+    fi
+  else
+    echo -e "********\n\nCleaning git source tree\n\n********"
+    git clean -fdx || __die 1 'git failed'
+    git reset --hard HEAD
+    if [ "$update" == "yes" ]
+    then
+      echo -e "********\n\nUpdating git source tree\n\n********"
+      git fetch --tags origin
+    fi
+    echo -e "********\n\nSwitching to ${branch} branch\n\n********"
+    git checkout "${branch}" || __die 1 "Tag for '${branch} not found"
+  fi
+}
+
+__unbundle() {
+  cd /home/source/
+  wget "https://kernel.ubuntu.com/~kernel-ppa/mainline/${kver}/crack.bundle" || __die 1 "Failed to download bundle from ubuntu.com"
+  git bundle verify crack.bundle || __die 1 "bundle will not apply"
+  git bundle unbundle crack.bundle || __die 1 "Failed to unbundle"
+  git checkout $(git bundle list-heads crack.bundle | grep "${kver}" | awk '{ print $1 }') || __die 1 "failed to checkout commit"
+}
+
 echo -e "********\n\nBuild starting\n\n********"
 
 echo ">>> Setting haverust flag (default no on focal)"
@@ -133,7 +186,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|metaver|metaonly|metatime|haverust)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|metaver|metaonly|metatime|haverust|branch|bundle|stype|clean)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -157,20 +210,12 @@ cd "$ksrc" || __die 1 "\$ksrc ${ksrc@Q} not found"
 # tell git to trust /home/source
 git config --global --add safe.directory /home/source
 
-echo -e "********\n\nCleaning git source tree\n\n********"
-git clean -fdx || __die 1 'git failed'
-git reset --hard HEAD
+__update_sources
 
-echo -e ">>> Args.... update is $update"
-if [ "$update" == "yes" ]
+if [ "${bundle}" == "yes" ]
 then
-  echo -e "********\n\nUpdating git source tree\n\n********"
-  git fetch --tags origin
+  __unbundle
 fi
-
-# checkout the kver
-echo -e "********\n\nSwitching to cod/mainline/${kver} branch\n\n********"
-git checkout "cod/mainline/${kver}" || __die 1 "Tag for 'cod/mainline/${kver} not found"
 
 # Apply patch if requested
 echo -e ">>> Args.... patch is $patch"
@@ -206,6 +251,7 @@ then
   sed -i -re "s/^(Package:\s+)(linux(-cloud[-tools]*|-tools)(-common|-host))$/\1\2-PKGVER/" debian.master/control.stub.in
   sed -i -re "s/^(Depends:\s+.*, )(linux(-cloud[-tools]*|-tools)(-common|-host))$/\1\2-PKGVER/" debian.master/control.stub.in
   sed -i -re "s/indep_hdrs_pkg_name=[^-]*/indep_hdrs_pkg_name=linux/" debian/rules.d/0-common-vars.mk
+  sed -i -re "s/rust_pkg_name=[^-]*/rust_pkg_name=linux/" debian/rules.d/0-common-vars.mk
 else
   sed -i -re "s/(^linux) \(([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)\.[0-9]+\) ([^;]*)(.*)/linux (${kver:1}-${abinum}.${debversion}) ${series}\5/" debian.master/changelog
 fi
@@ -217,6 +263,11 @@ if [ "$series" == "focal" ]
 then
   echo -e ">>> Downgrade GCC to version 9 on focal"
   sed -i -re 's/export gcc\?=.*/export gcc?=gcc-9/' debian/rules.d/0-common-vars.mk
+# revert GCC to v12 on Jammy
+elif [ "$series" == "jammy" ]
+then
+  echo -e ">>> Downgrade GCC to version 11 on focal"
+  sed -i -re 's/export gcc\?=.*/export gcc?=gcc-12/' debian/rules.d/0-common-vars.mk
 fi
 
 # Remove rust dependencies if $haverust is "no". Defaults to "no" on focal and "yes" on others.
@@ -330,6 +381,14 @@ then
   echo -e "********\n\nYou have asked for a custom build.\nYou will be given the chance to makemenuconfig next.\n\n********"
   read -p 'Press return to continue...' foo
   fakeroot debian/rules editconfigs
+else
+  if [ -x "/custom/${custom}-patch.sh" ]
+  then
+    echo -e "********\n\nYou have asked for a custom build.\nPatching source with /custom/${custom}-patch.sh\n\n********"
+    /custom/${custom}-patch.sh
+    read -p 'Press return to continue...' foo
+    fakeroot debian/rules editconfigs
+  fi
 fi
 
 # Build
@@ -368,7 +427,14 @@ then
   bash
 fi
 
-echo -e "********\n\nCleaning git source tree\n\n********"
-git clean -fdx
-git reset --hard HEAD
+if [ "$clean" == "yes" ]
+then
+  echo -e "********\n\nRemoving git source tree\n\n********"
+  rm -r /home/source/*
+  rm -r /home/source/.[a-z]*
+else
+  echo -e "********\n\nCleaning git source tree\n\n********"
+  git clean -fdx
+  git reset --hard HEAD
+fi
 
