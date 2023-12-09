@@ -27,6 +27,11 @@ branch=""
 bundle=no
 stype=crack
 clean=no
+dryrun=no
+
+# Set these both to yes if you want to to install the required rust version and build a rust enabled kernel
+rustup=no
+haverust=no
 
 do_metapackage() {
   KVER=$1
@@ -168,15 +173,6 @@ __unbundle() {
 
 echo -e "********\n\nBuild starting\n\n********"
 
-echo ">>> Setting haverust flag (default no on focal)"
-# Default haverust to no on focal
-if [ "$series" == "focal" ]
-then
-  haverust=${haverust:-"no"}
-else
-  haverust=${haverust:-"yes"}
-fi
-
 args=( "$@" );
 for (( i=0; $i < $# ; i++ ))
 do
@@ -186,7 +182,7 @@ do
     key=${arg#--}
     val=${key#*=}; key=${key%%=*}
     case "$key" in
-      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|metaver|metaonly|metatime|haverust|branch|bundle|stype|clean)
+      update|btype|shell|custom|sign|flavour|exclude|rename|patch|series|checkbugs|buildmeta|maintainer|debug|kver|metaver|metaonly|metatime|haverust|branch|bundle|stype|clean|rustup|dryrun)
         printf -v "$key" '%s' "$val" ;;
       *) __die 1 "Unknown flag $arg"
     esac
@@ -215,6 +211,16 @@ __update_sources
 if [ "${bundle}" == "yes" ]
 then
   __unbundle
+fi
+
+# install rust if requested
+if [ "$rustup" == "yes" ]
+then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  /root/.cargo/bin/rustup override set $(scripts/min-tool-version.sh rustc)
+  /root/.cargo/bin/rustup component add rust-src
+  /root/.cargo/bin/cargo install --locked --version $(scripts/min-tool-version.sh bindgen) bindgen-cli
+  cp /root/.cargo/bin/* /usr/local/bin
 fi
 
 # Apply patch if requested
@@ -257,6 +263,9 @@ else
 fi
 sed -i -re 's/dwarves \[/dwarves (>=1.21) \[/g' debian.master/control.stub.in
 
+# don't fail if we find no *.ko files in the build dir
+sed -i -re 's/zstd -19 --quiet --rm/zstd -19 --rm || true/g' debian/rules.d/2-binary-arch.mk
+
 # undo GCC-11 update in focal
 echo -e ">>> Args.... series is $series"
 if [ "$series" == "focal" ]
@@ -266,7 +275,7 @@ then
 # revert GCC to v12 on Jammy
 elif [ "$series" == "jammy" ]
 then
-  echo -e ">>> Downgrade GCC to version 11 on focal"
+  echo -e ">>> Downgrade GCC to version 12 on focal"
   sed -i -re 's/export gcc\?=.*/export gcc?=gcc-12/' debian/rules.d/0-common-vars.mk
 fi
 
@@ -394,15 +403,24 @@ fi
 # Build
 if [ "$metaonly" == "no" ]
 then
-    echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
+  echo -e "********\n\nBuilding packages\nCommand: dpkg-buildpackage --build=$btype $buildargs\n\n********"
+  if [ "$dryrun" == "no" ]
+  then
     dpkg-buildpackage --build=$btype $buildargs
+  fi
 fi
 
 echo -e "********\n\nBuilding meta package\n\n********"
 echo -e ">>> Args.... buildmeta is $buildmeta"
 if [ "$buildmeta" == "yes" ]
 then
-  if [ "$flavour" == "none" ]
+  if [ "$dryrun" == "yes" ]
+  then
+    echo -e "********\n\nDry-run\nCommand: dpkg-buildpackage --build=$btype $buildargs"
+    echo "do_metapackage "${kver:1}" "${metaver}" "${metatime}" "generic" "$series" "$maintainer" "$abinum" "$btype""
+    echo "dry-run shell"
+    bash
+  elif [ "$flavour" == "none" ]
   then
     echo ">>> Building generic metapackage"
     do_metapackage "${kver:1}" "${metaver}" "${metatime}" "generic" "$series" "$maintainer" "$abinum" "$btype"
